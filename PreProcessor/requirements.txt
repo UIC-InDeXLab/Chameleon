@@ -1,0 +1,3 @@
+notebook
+jupyter
+Pillow
