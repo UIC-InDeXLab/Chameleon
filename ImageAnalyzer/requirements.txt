@@ -1,0 +1,7 @@
+# backend
+fastapi
+uvicorn[standard]
+python-multipart
+
+# database
+sqlalchemy
