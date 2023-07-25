@@ -4,7 +4,7 @@ from models import Gender, Race
 
 
 class ImageBase(BaseModel):
-    file_name: str
+    filename: str
     age: int
     gender: Gender
     race: Race
@@ -24,7 +24,7 @@ class ImageCreate(ImageBase):
 
 class Image(ImageBase):
     id: str
-    file_name: str
+    filename: str
     age: int
     gender: Gender
     race: Race

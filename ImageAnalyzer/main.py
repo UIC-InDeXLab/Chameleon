@@ -1,3 +1,6 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
@@ -5,19 +8,33 @@ import crud
 import models
 import schemas
 from database import SessionLocal, engine
+from utils import assert_env_var_not_none
 
+load_dotenv()
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
 
-
-# Dependency
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+
+def load_images():
+    db = next(get_db())
+    path = assert_env_var_not_none("RESOURCES_PATH")
+    for image_file in os.listdir(path):
+        try:
+            crud.create_image_by_filename(db=db, filename=os.path.basename(image_file))
+        except Exception as e:
+            print(f"Error in filename: {image_file}, {e}")
+            continue
+    print("Images loaded successfully.")
+
+
+app = FastAPI(on_startup=[get_db, load_images])
 
 
 @app.post("/v1/images/", response_model=schemas.Image)
