@@ -51,4 +51,4 @@ def get_table_df(db: Session, manager: AgeGroupManager):
     return [schemas.ExportImageBase.model_construct(
         filename=r.filename, age=manager.get_age_group_by_age(r.age).id, gender=r.gender, race=r.race)
         for r in
-        db.query(Image).all()]
+        db.query(Image).all() if r.race != 4]
