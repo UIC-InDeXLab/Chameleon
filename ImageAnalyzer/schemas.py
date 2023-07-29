@@ -22,6 +22,13 @@ class ImageCreate(ImageBase):
     pass
 
 
+class ExportImageBase(BaseModel):
+    filename: str
+    age: int
+    gender: Gender
+    race: Race
+
+
 class Image(ImageBase):
     id: str
     filename: str

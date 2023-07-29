@@ -1,0 +1,49 @@
+{
+  "age_groups": [
+    {
+      "name": "infant",
+      "start_age": 1,
+      "end_age": 3
+    },
+    {
+      "name": "preschooler",
+      "start_age": 3,
+      "end_age": 7
+    },
+    {
+      "name": "school age child",
+      "start_age": 7,
+      "end_age": 13
+    },
+    {
+      "name": "adolescents",
+      "start_age": 13,
+      "end_age": 19
+    },
+    {
+      "name": "young adult",
+      "start_age": 19,
+      "end_age": 25
+    },
+    {
+      "name": "adult",
+      "start_age": 25,
+      "end_age": 40
+    },
+    {
+      "name": "middle aged person",
+      "start_age": 40,
+      "end_age": 65
+    },
+    {
+      "name": "senior",
+      "start_age": 65,
+      "end_age": 80
+    },
+    {
+      "name": "elderly",
+      "start_age": 80,
+      "end_age": 120
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func, between
 
 import schemas
-from models import Gender, Image, Race
+from models import Gender, Image, Race, AgeGroupManager
 
 
 def get_image_by_id(db: Session, image_id: str):
@@ -13,9 +14,13 @@ def get_image_by_file_name(db: Session, file_name: str):
 
 
 def get_images(db: Session, skip: int = 0, limit: int = 100,
-               gender: Gender = None, race: Race = None):
+               gender: Gender = None, race: Race = None, min_age: int = 0, max_age: int = 200):
     filters = {k: v for k, v in (('gender', gender), ('race', race)) if v is not None}
-    return db.query(Image).filter_by(**filters).offset(skip).limit(limit).all()
+    return db.query(Image) \
+        .filter_by(**filters) \
+        .filter(between(Image.age, min_age, max_age)) \
+        .order_by(Image.age) \
+        .offset(skip).limit(limit).all()
 
 
 def get_image_by_gender(db: Session, gender: Gender, skip: int = 0, limit: int = 100):
@@ -37,3 +42,10 @@ def create_image(db: Session, image: schemas.ImageCreate):
     db.commit()
     db.refresh(db_image)
     return db_image
+
+
+def get_table_df(db: Session, manager: AgeGroupManager):
+    return [schemas.ExportImageBase.model_construct(
+        filename=r.filename, age=manager.get_age_group_by_age(r.age).id, gender=r.gender, race=r.race)
+        for r in
+        db.query(Image).all()]
