@@ -13,14 +13,17 @@ def get_image_by_file_name(db: Session, file_name: str):
     return db.query(Image).filter(Image.filename == file_name).first()
 
 
-def get_images(db: Session, skip: int = 0, limit: int = 100,
+def get_images(db: Session, skip: int = 0, limit: int = None,
                gender: Gender = None, race: Race = None, min_age: int = 0, max_age: int = 200):
     filters = {k: v for k, v in (('gender', gender), ('race', race)) if v is not None}
-    return db.query(Image) \
+    q = db.query(Image) \
         .filter_by(**filters) \
-        .filter(between(Image.age, min_age, max_age)) \
+        .filter(between(Image.age, min_age, max_age - 1)) \
         .order_by(Image.age) \
-        .offset(skip).limit(limit).all()
+        .offset(skip)
+    if limit:
+        q = q.limit(limit)
+    return q.all()
 
 
 def get_image_by_gender(db: Session, gender: Gender, skip: int = 0, limit: int = 100):
