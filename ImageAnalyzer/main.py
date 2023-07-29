@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from tqdm import tqdm
 
 import crud
 import models
@@ -36,9 +37,18 @@ def init_age_groups_manager():
 
 @timeit
 def load_images():
+    if os.getenv("RELOAD_IMAGES", "False").lower() not in ['true', '1']:
+        return
     db = next(get_db())
     path = assert_env_var_not_none("RESOURCES_PATH")
-    for image_file in os.listdir(path):
+    try:
+        db.query(models.Image).delete()
+        db.commit()
+        print("DB cleared.")
+    except Exception:
+        db.rollback()
+
+    for image_file in tqdm(os.listdir(path)):
         try:
             crud.create_image_by_filename(db=db, filename=os.path.basename(image_file))
         except Exception as e:
@@ -47,8 +57,7 @@ def load_images():
     print("Images loaded successfully.")
 
 
-# app = FastAPI(on_startup=[get_db, load_images])
-app = FastAPI(on_startup=[get_db, init_age_groups_manager])
+app = FastAPI(on_startup=[get_db, init_age_groups_manager, load_images])
 
 
 @app.post("/v1/images", response_model=schemas.Image)
@@ -84,12 +93,11 @@ def get_image_by_file_name(file_name: str, db: Session = Depends(get_db)):
     return db_image
 
 
-@app.get("/v1/images/export")
+@app.get("/v1/images/export/")
 async def export_csv(db: Session = Depends(get_db), manager: AgeGroupManager = Depends(init_age_groups_manager)):
     results = crud.get_table_df(db, manager)
     df = pd.DataFrame(columns=['filename', 'age', 'gender', 'race'],
-                      data=[[r.filename, r.age, r.gender, r.race] for r
-                            in results])
+                      data=[[r.filename, r.age, r.gender, r.race] for r in results])
 
     return StreamingResponse(
         iter([df.to_csv(index=False)]),
