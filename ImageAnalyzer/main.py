@@ -12,7 +12,7 @@ import crud
 import models
 import schemas
 from database import SessionLocal, engine
-from models import AgeGroup, AgeGroupManager
+from models import AgeGroup, AgeGroupManager, AgeGroupGenderRacePattern
 from utils import assert_env_var_not_none, timeit
 
 load_dotenv()
@@ -103,3 +103,13 @@ async def export_csv(db: Session = Depends(get_db), manager: AgeGroupManager = D
         iter([df.to_csv(index=False)]),
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=data.csv"})
+
+
+@app.get("/v1/prompt/{pattern}")
+def generate_prompt(pattern: str, db: Session = Depends(get_db),
+                    manager: AgeGroupManager = Depends(init_age_groups_manager)):
+    p = AgeGroupGenderRacePattern(pattern, manager)
+    count = crud.get_images_count(db=db,
+                                  race=p.race, gender=p.gender, min_age=p.age_group.start_age,
+                                  max_age=p.age_group.end_age)
+    return {"count": count, "prompt": p.prompt}

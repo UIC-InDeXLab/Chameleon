@@ -55,6 +55,26 @@ class AgeGroupManager:
             if g.start_age <= age < g.end_age:
                 return g
 
+    def get_age_group_by_id(self, id: int):
+        for g in self.age_groups:
+            if g.id == id:
+                return g
+        return None
+
+
+class AgeGroupGenderRacePattern:
+    def __init__(self, string: str, manager: AgeGroupManager):
+        args = list(string)
+        assert len(args) == 3
+        self.age_group_id = int(args[0])
+        self.age_group = manager.get_age_group_by_id(self.age_group_id)
+        self.gender = Gender(int(args[1]))
+        self.race = Race(int(args[2]))
+
+    @property
+    def prompt(self):
+        return " ".join([self.race.name, self.gender.name, self.age_group.name])
+
 
 class Image(Base):
     __tablename__ = "images"
