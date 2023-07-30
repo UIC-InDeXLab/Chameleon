@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
@@ -13,7 +13,7 @@ import models
 import schemas
 from database import SessionLocal, engine
 from models import AgeGroup, AgeGroupManager, AgeGroupGenderRacePattern
-from utils import assert_env_var_not_none, timeit
+from utils import assert_env_var_not_none, timeit, get_image_full_path
 
 load_dotenv()
 models.Base.metadata.create_all(bind=engine)
@@ -60,11 +60,6 @@ def load_images():
 app = FastAPI(on_startup=[get_db, init_age_groups_manager, load_images])
 
 
-@app.post("/v1/images", response_model=schemas.Image)
-def create_user(image: schemas.ImageCreate, db: Session = Depends(get_db)):
-    return crud.create_image(db=db, image=image)
-
-
 @app.get("/v1/images", response_model=list[schemas.Image])
 def get_images(skip: int = 0, limit: int = None,
                gender: models.Gender = None,
@@ -73,7 +68,6 @@ def get_images(skip: int = 0, limit: int = None,
                max_age: int = 200,
                db: Session = Depends(get_db)):
     users = crud.get_images(db, skip=skip, limit=limit, race=race, gender=gender, min_age=min_age, max_age=max_age)
-    print(len(users))
     return users
 
 
@@ -91,6 +85,15 @@ def get_image_by_file_name(file_name: str, db: Session = Depends(get_db)):
     if db_image is None:
         raise HTTPException(status_code=404, detail="Image not found")
     return db_image
+
+
+@app.get("/v1/images/pattern/{pattern}", response_class=FileResponse)
+async def get_random_image_by_pattern(pattern: str, db: Session = Depends(get_db),
+                                      manager: AgeGroupManager = Depends(init_age_groups_manager)):
+    p = AgeGroupGenderRacePattern(pattern, manager)
+    db_image = crud.get_random_image(db=db, gender=p.gender, race=p.race,
+                                     min_age=p.age_group.start_age, max_age=p.age_group.end_age)
+    return FileResponse(get_image_full_path(db_image.filename))
 
 
 @app.get("/v1/images/export/")

@@ -1,5 +1,6 @@
 import io
 import os
+import pathlib
 import time
 from functools import wraps
 
@@ -11,10 +12,8 @@ def assert_env_var_not_none(env_var_name):
     return env_var_value
 
 
-def stream_dict_as_csv(dicts: dict):
-    stream = io.StringIO()
-
-
+def get_image_full_path(filename):
+    return os.path.join(assert_env_var_not_none("RESOURCES_PATH"), filename)
 
 
 def timeit(func):
