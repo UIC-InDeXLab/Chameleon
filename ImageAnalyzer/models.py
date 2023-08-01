@@ -19,61 +19,31 @@ class Race(IntEnum):
     other = 4
 
 
-class AgeGroup:
-    def __init__(self, id: int, name: str, start_age: int, end_age: int):
-        self.id = id
-        self.name = name
-        self.start_age = start_age
-        self.end_age = end_age
-
-    def __str__(self):
-        return f"{self.name} is from {self.start_age} until {self.end_age}"
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class AgeGroupManager:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(AgeGroupManager, cls).__new__(cls)
-        return cls._instance
-
-    def __init__(self, age_groups: list[AgeGroup]):
-        if not hasattr(self, '_initialized'):
-            self._age_groups = age_groups
-            self._initialized = True
-
-    @property
-    def age_groups(self):
-        return self._age_groups
-
-    def get_age_group_by_age(self, age: int):
-        for g in self.age_groups:
-            if g.start_age <= age < g.end_age:
-                return g
-
-    def get_age_group_by_id(self, id: int):
-        for g in self.age_groups:
-            if g.id == id:
-                return g
-        return None
+class AgeGroup(IntEnum):
+    infant = 0
+    pre_schooler = 1
+    school_age_child = 2
+    adolescents = 3
+    young_adult = 4
+    adult = 5
+    middle_aged_person = 6
+    senior = 7
+    elderly = 8
 
 
 class AgeGroupGenderRacePattern:
-    def __init__(self, string: str, manager: AgeGroupManager):
+    def __init__(self, string: str):
         args = list(string)
         assert len(args) == 3
-        self.age_group_id = int(args[0])
-        self.age_group = manager.get_age_group_by_id(self.age_group_id)
+        self.age_group = AgeGroup(int(args[0]))
         self.gender = Gender(int(args[1]))
         self.race = Race(int(args[2]))
 
     @property
     def prompt(self):
-        return " ".join([self.race.name, self.gender.name, self.age_group.name])
+        return " ".join([self.race.name.replace("_", " "),
+                         self.gender.name.replace("_", " "),
+                         self.age_group.name.replace("_", " ")])
 
 
 class Image(Base):
@@ -81,6 +51,6 @@ class Image(Base):
 
     id = Column(String, default=lambda: str(uuid.uuid4()), primary_key=True)
     filename = Column(String, unique=True, index=True)
-    age = Column(Integer)
+    age_group = Column(Enum(AgeGroup))
     gender = Column(Enum(Gender))
     race = Column(Enum(Race))

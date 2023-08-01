@@ -1,11 +1,11 @@
 from pydantic import BaseModel, field_serializer
 
-from models import Gender, Race
+from models import Gender, Race, AgeGroup
 
 
 class ImageBase(BaseModel):
     filename: str
-    age: int
+    age_group: AgeGroup
     gender: Gender
     race: Race
 
@@ -17,6 +17,10 @@ class ImageBase(BaseModel):
     def serialize_race(self, race: Race, _info):
         return race.name
 
+    @field_serializer('age_group')
+    def serialize_age_group(self, age_group: AgeGroup):
+        return age_group.name
+
 
 class ImageCreate(ImageBase):
     pass
@@ -24,7 +28,7 @@ class ImageCreate(ImageBase):
 
 class ExportImageBase(BaseModel):
     filename: str
-    age: int
+    age_group: AgeGroup
     gender: Gender
     race: Race
 
@@ -32,7 +36,7 @@ class ExportImageBase(BaseModel):
 class Image(ImageBase):
     id: str
     filename: str
-    age: int
+    age_group: AgeGroup
     gender: Gender
     race: Race
 

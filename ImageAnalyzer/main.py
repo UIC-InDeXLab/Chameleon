@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI
 from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy.orm import Session
 from tqdm import tqdm
@@ -12,7 +12,7 @@ import crud
 import models
 import schemas
 from database import SessionLocal, engine
-from models import AgeGroup, AgeGroupManager, AgeGroupGenderRacePattern
+from models import AgeGroup, AgeGroupGenderRacePattern
 from utils import assert_env_var_not_none, timeit, get_image_full_path
 
 load_dotenv()
@@ -25,14 +25,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-def init_age_groups_manager():
-    with open('config.json', 'r') as f:
-        data = json.load(f)
-    age_groups = [AgeGroup(id=i, **age_group) for i, age_group in enumerate(data['age_groups'])]
-    manager = AgeGroupManager(age_groups)
-    return manager
 
 
 @timeit
@@ -57,50 +49,31 @@ def load_images():
     print("Images loaded successfully.")
 
 
-app = FastAPI(on_startup=[get_db, init_age_groups_manager, load_images])
+app = FastAPI(on_startup=[get_db, load_images])
 
 
-@app.get("/v1/images", response_model=list[schemas.Image])
+@app.get("/v1/images/", response_model=list[schemas.Image])
 def get_images(skip: int = 0, limit: int = None,
                gender: models.Gender = None,
                race: models.Race = None,
-               min_age: int = 0,
-               max_age: int = 200,
+               age_group: models.AgeGroup = None,
                db: Session = Depends(get_db)):
-    users = crud.get_images(db, skip=skip, limit=limit, race=race, gender=gender, min_age=min_age, max_age=max_age)
+    users = crud.get_images(db, skip=skip, limit=limit, race=race, gender=gender, age_group=age_group)
     return users
 
 
-@app.get("/v1/images/{image_id}", response_model=schemas.Image)
-def get_image_by_id(image_id: str, db: Session = Depends(get_db)):
-    db_image = crud.get_image_by_id(db, image_id=image_id)
-    if db_image is None:
-        raise HTTPException(status_code=404, detail="Image not found")
-    return db_image
-
-
-@app.get("/v1/images/{file_name}", response_model=schemas.Image)
-def get_image_by_file_name(file_name: str, db: Session = Depends(get_db)):
-    db_image = crud.get_image_by_file_name(db, file_name=file_name)
-    if db_image is None:
-        raise HTTPException(status_code=404, detail="Image not found")
-    return db_image
-
-
-@app.get("/v1/images/pattern/{pattern}", response_class=FileResponse)
-async def get_random_image_by_pattern(pattern: str, db: Session = Depends(get_db),
-                                      manager: AgeGroupManager = Depends(init_age_groups_manager)):
-    p = AgeGroupGenderRacePattern(pattern, manager)
-    db_image = crud.get_random_image(db=db, gender=p.gender, race=p.race,
-                                     min_age=p.age_group.start_age, max_age=p.age_group.end_age)
+@app.get("/v1/images/pattern/{pattern}/", response_class=FileResponse)
+async def get_random_image_by_pattern(pattern: str, db: Session = Depends(get_db)):
+    p = AgeGroupGenderRacePattern(pattern)
+    db_image = crud.get_random_image(db=db, gender=p.gender, race=p.race, age_group=p.age_group)
     return FileResponse(get_image_full_path(db_image.filename))
 
 
 @app.get("/v1/images/export/")
-async def export_csv(db: Session = Depends(get_db), manager: AgeGroupManager = Depends(init_age_groups_manager)):
-    results = crud.get_table_df(db, manager)
-    df = pd.DataFrame(columns=['filename', 'age', 'gender', 'race'],
-                      data=[[r.filename, r.age, r.gender, r.race] for r in results])
+async def export_csv(db: Session = Depends(get_db)):
+    results = crud.get_table_df(db)
+    df = pd.DataFrame(columns=['filename', 'age_group', 'gender', 'race'],
+                      data=[[r.filename, r.age_group, r.gender, r.race] for r in results])
 
     return StreamingResponse(
         iter([df.to_csv(index=False)]),
@@ -108,11 +81,17 @@ async def export_csv(db: Session = Depends(get_db), manager: AgeGroupManager = D
         headers={"Content-Disposition": f"attachment; filename=data.csv"})
 
 
-@app.get("/v1/prompt/{pattern}")
-def generate_prompt(pattern: str, db: Session = Depends(get_db),
-                    manager: AgeGroupManager = Depends(init_age_groups_manager)):
-    p = AgeGroupGenderRacePattern(pattern, manager)
-    count = crud.get_images_count(db=db,
-                                  race=p.race, gender=p.gender, min_age=p.age_group.start_age,
-                                  max_age=p.age_group.end_age)
+@app.get("/v1/prompt/{pattern}/")
+def generate_prompt(pattern: str, db: Session = Depends(get_db)):
+    p = AgeGroupGenderRacePattern(pattern)
+    count = crud.get_images_count(db=db, race=p.race, gender=p.gender, age_group=p.age_group)
     return {"count": count, "prompt": p.prompt}
+
+
+@app.get("/v1/images/count/")
+def def_images_count(gender: models.Gender = None,
+                     race: models.Race = None,
+                     age_group: models.AgeGroup = None,
+                     db: Session = Depends(get_db)):
+    count = crud.get_images_count(db=db, race=race, gender=gender, age_group=age_group)
+    return {"count": count}
