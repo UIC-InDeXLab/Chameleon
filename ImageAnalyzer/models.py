@@ -16,7 +16,6 @@ class Race(IntEnum):
     black = 1
     asian = 2
     indian = 3
-    other = 4
 
 
 class AgeGroup(IntEnum):

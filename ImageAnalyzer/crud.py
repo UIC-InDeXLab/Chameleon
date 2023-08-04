@@ -1,6 +1,6 @@
-from sqlalchemy import between
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
+
 import schemas
 from models import Gender, Image, Race, AgeGroup
 
@@ -58,4 +58,4 @@ def get_table_df(db: Session):
     return [schemas.ExportImageBase.model_construct(
         filename=r.filename, age_group=r.age_group, gender=r.gender, race=r.race)
         for r in
-        db.query(Image).all() if r.race != 4]
+        db.query(Image).all()]
