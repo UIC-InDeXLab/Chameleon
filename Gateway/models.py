@@ -1,4 +1,5 @@
 import random
+from json import JSONEncoder
 
 
 class MUP:
@@ -13,9 +14,11 @@ class MUP:
         if type(self)._weights is None:
             type(self)._weights = weights
 
-    def __init__(self, pattern: str, count: int):
+    def __init__(self, pattern: str, count: int, prompt: str):
         self.pattern = pattern
         self.count = count
+        self.prompt = prompt
+        self.chosen_similar_pattern = None
         self.generated_images = []
 
     def generate_similar_pattern(self):
@@ -45,3 +48,18 @@ class MUP:
             race = get_new_race(race)
 
         return "".join([str(age_group), str(gender), str(race)])
+
+    def add_image(self, path: str):
+        self.generated_images.append(path)
+
+    def is_satisfied(self, threshold: int):
+        return threshold <= len(self.generated_images) + self.count
+
+    def get_count_needed(self, threshold: int):
+        return threshold - len(self.generated_images) - self.count
+
+
+class MUPEncoder(JSONEncoder):
+    def default(self, o: MUP):
+        return {"pattern": o.pattern, "count": o.count, "prompt": o.prompt,
+                "generation_pattern": o.chosen_similar_pattern}
