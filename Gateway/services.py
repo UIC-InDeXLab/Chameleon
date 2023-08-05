@@ -1,7 +1,9 @@
-from models import MUP
-from connectors import ImageAnalyzerConnector, MaskGeneratorConnector, ImageEditorConnector
+import random
 
 import requests
+
+from connectors import ImageAnalyzerConnector, MaskGeneratorConnector, ImageEditorConnector
+from models import MaximalUncoveredPattern, Pattern
 
 
 def get_pattern_details(pattern: str) -> (int, str):
@@ -10,12 +12,22 @@ def get_pattern_details(pattern: str) -> (int, str):
     return int(details["count"]), str(details["prompt"])
 
 
-def get_mup_random_image(mup: MUP):
-    pattern = mup.generate_similar_pattern()
-    mup.chosen_similar_pattern = pattern
+def get_mup_random_image(mup: MaximalUncoveredPattern):
+    similar_patterns = get_similar_patterns(mup)
+    choice: Pattern = random.choices(similar_patterns, weights=[sp.frequency for sp in similar_patterns])[0]
+    mup.chosen_similar_pattern = choice
     connector = ImageAnalyzerConnector()
-    image = connector.get_random_image_from_pattern(pattern)
+    image = connector.get_random_image_from_pattern(choice.pattern)
     return image
+
+
+def get_similar_patterns(mup: MaximalUncoveredPattern) -> list[Pattern]:
+    similar_patterns: list[Pattern] = []
+    for p in mup.similar_patterns_strings:
+        frequency, prompt = get_pattern_details(p)
+        similar_patterns.append(Pattern(p, frequency, prompt))
+
+    return similar_patterns
 
 
 def get_mask(base_image):

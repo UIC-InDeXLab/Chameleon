@@ -1,65 +1,81 @@
-import random
+import json
 from json import JSONEncoder
 
 
-class MUP:
-    _weights = None
+class Pattern:
+    def __init__(self, pattern: str, frequency: int, prompt: str):
+        self.pattern = pattern
+        self.frequency = frequency
+        self.prompt = prompt
 
     @property
-    def weights(self):
-        return type(self)._weights
+    def age_group(self):
+        return int(list(self.pattern)[0])
 
-    @weights.setter
-    def weights(self, weights):
-        if type(self)._weights is None:
-            type(self)._weights = weights
+    @property
+    def gender(self):
+        return int(list(self.pattern)[1])
 
-    def __init__(self, pattern: str, count: int, prompt: str):
-        self.pattern = pattern
-        self.count = count
-        self.prompt = prompt
-        self.chosen_similar_pattern = None
+    @property
+    def race(self):
+        return int(list(self.pattern)[2])
+
+
+class MaximalUncoveredPattern(Pattern):
+    def __init__(self, pattern: str, frequency: int, prompt: str):
+        super().__init__(pattern, frequency, prompt)
+        self.chosen_similar_pattern: Pattern | None = None
         self.generated_images = []
-
-    def generate_similar_pattern(self):
-        def get_new_age_group(age_group):
-            if age_group == 0:
-                return 1
-            elif age_group == 8:
-                return 7
-            else:
-                return age_group + random.choice([-1, 1])
-
-        def get_new_gender(gender):
-            return 1 if gender == 0 else 0
-
-        def get_new_race(race):
-            choices = list(range(0, 4))
-            choices.remove(race)
-            return random.choice(choices)
-
-        age_group, gender, race = [int(i) for i in list(self.pattern)]
-        choice: int = random.choices([0, 1, 2], weights=self.weights)[0]
-        if choice == 0:
-            age_group = get_new_age_group(age_group)
-        if choice == 1:
-            gender = get_new_gender(gender)
-        if choice == 2:
-            race = get_new_race(race)
-
-        return "".join([str(age_group), str(gender), str(race)])
 
     def add_image(self, path: str):
         self.generated_images.append(path)
 
     def is_satisfied(self, threshold: int):
-        return threshold <= len(self.generated_images) + self.count
+        return threshold <= len(self.generated_images) + self.frequency
 
     def get_count_needed(self, threshold: int):
-        return threshold - len(self.generated_images) - self.count
+        return threshold - len(self.generated_images) - self.frequency
+
+    @property
+    def similar_races(self):
+        choices = list(range(0, 4))
+        choices.remove(self.race)
+        return choices
+
+    @property
+    def similar_genders(self):
+        return [1] if self.gender == 0 else [0]
+
+    @property
+    def similar_age_groups(self):
+        if self.age_group == 0:
+            return [1]
+        elif self.age_group == 8:
+            return [7]
+        else:
+            return [self.age_group - 1, self.age_group + 1]
+
+    @property
+    def similar_patterns_strings(self) -> list[str]:
+        patterns = []
+        for a in self.similar_age_groups:
+            patterns.append("".join([str(a), str(self.gender), str(self.race)]))
+
+        for g in self.similar_genders:
+            patterns.append("".join([str(self.age_group), str(g), str(self.race)]))
+
+        for r in self.similar_races:
+            patterns.append("".join([str(self.age_group), str(self.gender), str(r)]))
+
+        return patterns
 
 
 class MUPEncoder(JSONEncoder):
-    def default(self, o: MUP):
-        return {"pattern": o.pattern, "count": o.count, "prompt": o.prompt,
-                "generation_pattern": o.chosen_similar_pattern}
+    def default(self, o: MaximalUncoveredPattern):
+        return {"pattern": o.pattern, "frequency": o.frequency, "prompt": o.prompt,
+                "generation_pattern": json.dumps(o.chosen_similar_pattern, cls=PatternEncoder)}
+
+
+class PatternEncoder(JSONEncoder):
+    def default(self, o: Pattern):
+        return {"pattern": o.pattern, "frequency": o.frequency, "prompt": o.prompt}
