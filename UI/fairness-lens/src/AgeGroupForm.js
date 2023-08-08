@@ -5,6 +5,8 @@ import HomepageButton from './HomePageButton';
 const AgeGroupForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState([]);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false); 
 
   const ageGroups = [
     { name: 'Infant', categories: ['Male', 'Female'] },
@@ -53,24 +55,51 @@ const AgeGroupForm = () => {
     setFormData(updatedFormData);
   };
 
-  const submitFormData = () => {
-    const url = 'https://example.com/submit'; // Replace with your specific URL
-    console.log(JSON.stringify(formData))
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        // Handle the response from the server if needed
-        console.log('Form data submitted:', data);
-      })
-      .catch((error) => {
-        console.error('Error submitting form data:', error);
+  const handleCopyClick = () => {
+    const idElement = document.getElementById('dataset-id');
+    const idText = idElement.textContent;
+    navigator.clipboard.writeText(idText);
+  };
+
+  const submitFormData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/v1/images/dataset/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({"age_groups" : formData}),
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResponseMessage(
+          <p>
+            Congrats, your dataset id is{' '}
+            <span id="dataset-id" className="code-box">
+              {data.id}
+            </span>
+            .{' '}
+            <button onClick={handleCopyClick} className="copy-button">
+              Copy to Clipboard
+            </button>
+          </p>
+        );
+      } else {
+        setResponseMessage(
+          'Sorry, we couldn\'t perform your operation right now, please try again later'
+        );
+      }
+    } catch (error) {
+      console.error('Error creating dataset:', error);
+      setResponseMessage(
+        'Sorry, we couldn\'t perform your operation right now, please try again later'
+      );
+    }
+    finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -110,6 +139,13 @@ const AgeGroupForm = () => {
               )}
             </div>
           ) : null
+        )}
+      </div>
+      <div className="response-message">
+      {isLoading ? (
+          <p>Please wait while we create your dataset...</p> 
+        ) : (
+          responseMessage 
         )}
       </div>
     </div>
