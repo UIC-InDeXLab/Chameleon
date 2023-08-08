@@ -1,7 +1,7 @@
 import uuid
 from enum import IntEnum
 
-from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy import Column, String, Enum
 
 from database import Base
 
@@ -20,7 +20,7 @@ class Race(IntEnum):
 
 class AgeGroup(IntEnum):
     infant = 0
-    pre_schooler = 1
+    preschooler = 1
     school_age_child = 2
     adolescents = 3
     young_adult = 4

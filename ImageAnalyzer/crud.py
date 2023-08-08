@@ -1,40 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import func
 
 import schemas
+from csv_crud import get_random_images
 from models import Gender, Image, Race, AgeGroup
-
-
-def get_image_by_id(db: Session, image_id: str):
-    return db.query(Image).filter(Image.id == image_id).first()
-
-
-def get_image_by_file_name(db: Session, file_name: str):
-    return db.query(Image).filter(Image.filename == file_name).first()
-
-
-def get_images(db: Session, skip: int = 0, limit: int = None,
-               gender: Gender = None, race: Race = None, age_group: AgeGroup = None,
-               order_by=None):
-    filters = {k: v for k, v in (('gender', gender), ('race', race), ('age_group', age_group)) if v is not None}
-    q = db.query(Image).filter_by(**filters)
-    if order_by is not None:
-        q = q.order_by(order_by)
-    if skip is not None:
-        q = q.offset(skip)
-    if limit is not None:
-        q = q.limit(limit)
-    return q.all()
-
-
-def get_random_image(db: Session, gender: Gender = None, race: Race = None, age_group: AgeGroup = None):
-    return get_images(db=db, gender=gender, race=race, age_group=age_group,
-                      order_by=func.random(), limit=1)[0]
-
-
-def get_images_count(db: Session, gender: Gender = None, race: Race = None, age_group: AgeGroup = None):
-    filters = {k: v for k, v in (('gender', gender), ('race', race), ('age_group', age_group)) if v is not None}
-    return db.query(Image).filter_by(**filters).count()
 
 
 def create_image_by_filename(db: Session, filename: str):
@@ -59,3 +27,11 @@ def get_table_df(db: Session):
         filename=r.filename, age_group=r.age_group, gender=r.gender, race=r.race)
         for r in
         db.query(Image).all()]
+
+
+def get_partial_table_df(db: Session, gender: Gender = None, race: Race = None, age_group: AgeGroup = None,
+                         limit: int = 1):
+    return [schemas.ExportImageBase.model_construct(
+        filename=r.filename, age_group=r.age_group, gender=r.gender, race=r.race)
+        for r in
+        get_random_images(db=db, gender=gender, race=race, age_group=age_group, limit=limit)]
