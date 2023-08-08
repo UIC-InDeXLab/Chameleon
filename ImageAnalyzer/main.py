@@ -1,4 +1,3 @@
-import json
 import os
 
 import pandas as pd
@@ -12,7 +11,7 @@ import crud
 import models
 import schemas
 from database import SessionLocal, engine
-from models import AgeGroup, AgeGroupGenderRacePattern
+from models import AgeGroupGenderRacePattern
 from utils import assert_env_var_not_none, timeit, get_image_full_path
 
 load_dotenv()
