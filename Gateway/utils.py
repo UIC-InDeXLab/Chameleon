@@ -19,3 +19,11 @@ def store_mup(mup, filename, dir):
 
     with open(os.path.join(dir, filename), "w") as f:
         f.write(json.dumps(mup, cls=MUPEncoder))
+
+
+def load_image(filename, is_generated: bool):
+    path = os.getenv("RESOURCES_PATH") if not is_generated else os.getenv("GENERATION_PATH")
+    with open(os.path.join(path, filename), "rb") as f:
+        data = f.read()
+
+    return data
