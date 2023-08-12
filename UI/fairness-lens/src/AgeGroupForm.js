@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import clipboardCopy from 'clipboard-copy';
 import './AgeGroupForm.css';
 import { BASE_BACKEND_URL } from './api';
 
@@ -54,7 +55,14 @@ const AgeGroupForm = () => {
   const handleCopyClick = () => {
     const idElement = document.getElementById('dataset-id');
     const idText = idElement.textContent;
-    navigator.clipboard.writeText(idText);
+
+    clipboardCopy(idText) // Use clipboard-copy to copy the ID to the clipboard
+      .then(() => {
+        console.log('Copied to clipboard:', idText);
+      })
+      .catch((error) => {
+        console.error('Error copying to clipboard:', error);
+      });
   };
 
   const submitFormData = async () => {
