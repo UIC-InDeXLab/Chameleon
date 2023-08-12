@@ -8,6 +8,7 @@ class ImageBase(BaseModel):
     age_group: AgeGroup
     gender: Gender
     race: Race
+    is_generated: bool
 
     @field_serializer('gender')
     def serialize_gender(self, gender: Gender, _info):
@@ -31,6 +32,7 @@ class ExportImageBase(BaseModel):
     age_group: AgeGroup
     gender: Gender
     race: Race
+    is_generated: bool
 
 
 class Image(ImageBase):
@@ -39,6 +41,7 @@ class Image(ImageBase):
     age_group: AgeGroup
     gender: Gender
     race: Race
+    is_generated: bool
 
     class Config:
         from_attributes = True

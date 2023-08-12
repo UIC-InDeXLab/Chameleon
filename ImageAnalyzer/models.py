@@ -1,7 +1,7 @@
 import uuid
 from enum import IntEnum
 
-from sqlalchemy import Column, String, Enum
+from sqlalchemy import Column, String, Enum, Boolean
 
 from database import Base
 
@@ -34,15 +34,14 @@ class AgeGroupGenderRacePattern:
     def __init__(self, string: str):
         args = list(string)
         assert len(args) == 3
-        self.age_group = AgeGroup(int(args[0]))
-        self.gender = Gender(int(args[1]))
-        self.race = Race(int(args[2]))
+        self.age_group = AgeGroup(int(args[0])) if args[0] != "x" else None
+        self.gender = Gender(int(args[1])) if args[1] != "x" else None
+        self.race = Race(int(args[2])) if args[2] != "x" else None
 
     @property
     def prompt(self):
-        return " ".join([self.race.name.replace("_", " "),
-                         self.gender.name.replace("_", " "),
-                         self.age_group.name.replace("_", " ")])
+        not_none_attributes = [i for i in [self.race, self.gender, self.age_group] if i is not None]
+        return " ".join([i.name.replace("_", " ") for i in not_none_attributes])
 
 
 class Image(Base):
@@ -53,3 +52,4 @@ class Image(Base):
     age_group = Column(Enum(AgeGroup))
     gender = Column(Enum(Gender))
     race = Column(Enum(Race))
+    is_generated = Column(Boolean, default=False)
