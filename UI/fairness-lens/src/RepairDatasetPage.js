@@ -15,7 +15,7 @@ const RepairDatasetPage = () => {
     try {
       // Fetch dataset details from the backend using the provided datasetId
       console.log({datasetId})
-      const response = await fetch(`http://localhost:8000/v1/datasets/${datasetId}/`);
+      const response = await fetch(`http://127.0.0.1:8000/v1/datasets/${datasetId}/`);
       const data = await response.json();
 
       // Redirect to the dataset details page

@@ -60,7 +60,7 @@ const AgeGroupForm = () => {
   const submitFormData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/v1/datasets/', {
+      const response = await fetch('http://127.0.0.1:8000/v1/datasets/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

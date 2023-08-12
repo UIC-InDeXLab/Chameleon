@@ -17,7 +17,7 @@ const RepairDatasetDetails = () => {
 
   useEffect(() => {
     // Fetch count from the backend based on the dataset ID
-    fetch(`http://localhost:8000/v1/datasets/${id}`)
+    fetch(`http://127.0.0.1:8000/v1/datasets/${id}`)
       .then((response) => response.json())
       .then((data) => {
         setCount(data.count);
@@ -37,7 +37,7 @@ const RepairDatasetDetails = () => {
 
     try {
       // Fetch MUPs response from the backend using the provided threshold and dataset ID
-      const response = await fetch(`http://localhost:8000/v1/datasets/${id}/mups/?threshold=${threshold}`);
+      const response = await fetch(`http://127.0.0.1:8000/v1/datasets/${id}/mups/?threshold=${threshold}`);
       const data = await response.json();
       setMups(data.mups);
       setBestMup(data.best_mups[0]); // Get the best MUP from the response
@@ -53,7 +53,7 @@ const RepairDatasetDetails = () => {
   
     try {
       // Post best MUP pattern and threshold to the backend for generating images
-      const response = await fetch(`http://localhost:8000/v1/datasets/${id}/mups/generate/`, {
+      const response = await fetch(`http://127.0.0.1:8000/v1/datasets/${id}/mups/generate/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ const RepairDatasetDetails = () => {
       );
 
       // Post acceptable images list to the backend
-      const response = await fetch(`http://localhost:8000/v1/datasets/${id}/images/`, {
+      const response = await fetch(`http://127.0.0.1:8000/v1/datasets/${id}/images/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ const RepairDatasetDetails = () => {
 
     try {
       // Fetch MUPs response from the backend using the current threshold and dataset ID
-      const response = await fetch(`http://localhost:8000/v1/datasets/${id}/mups/?threshold=${threshold}`);
+      const response = await fetch(`http://127.0.0.1:8000/v1/datasets/${id}/mups/?threshold=${threshold}`);
       const data = await response.json();
       setMups(data.mups);
       setBestMup(data.best_mups[0]);
@@ -202,7 +202,7 @@ const RepairDatasetDetails = () => {
             {generatedImages.map((image, index) => (
               <img
                 key={index}
-                src={`http://localhost:8000/v1/image/${image}/?is_generated=1`}
+                src={`http://127.0.0.1:8000/v1/image/${image}/?is_generated=1`}
                 alt={`Generated Image ${index}`}
                 onClick={() => handleImageClick(image)}
                 className={selectedImages.includes(image) ? 'selected' : ''}
