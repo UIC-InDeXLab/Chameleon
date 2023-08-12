@@ -61,7 +61,7 @@ const RepairDatasetDetails = () => {
         body: JSON.stringify({
           pattern: bestMup.pattern,
           threshold: threshold,
-          limit: 3,
+          limit: 9,
         }),
       });
   
