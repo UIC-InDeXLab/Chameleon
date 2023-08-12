@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate instead of useHistory
 import './RepairDatasetPage.css'; // Import the CSS file
+import { BASE_BACKEND_URL } from './api';
+
 
 const RepairDatasetPage = () => {
   const [datasetId, setDatasetId] = useState('');
@@ -15,7 +17,7 @@ const RepairDatasetPage = () => {
     try {
       // Fetch dataset details from the backend using the provided datasetId
       console.log({datasetId})
-      const response = await fetch(`http://127.0.0.1:8000/v1/datasets/${datasetId}/`);
+      const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets/${datasetId}/`);
       const data = await response.json();
 
       // Redirect to the dataset details page
