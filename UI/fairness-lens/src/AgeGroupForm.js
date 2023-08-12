@@ -11,25 +11,21 @@ const AgeGroupForm = () => {
   const ageGroups = [
     { name: 'Infant', categories: ['Male', 'Female'] },
     { name: 'Preschooler', categories: ['Male', 'Female'] },
-    { name: 'School age', categories: ['Male', 'Female'] },
+    { name: 'School age child', categories: ['Male', 'Female'] },
     { name: 'Adolescents', categories: ['Male', 'Female'] },
     { name: 'Young Adult', categories: ['Male', 'Female'] },
     { name: 'Adult', categories: ['Male', 'Female'] },
-    { name: 'Middle Aged', categories: ['Male', 'Female'] },
+    { name: 'Middle Aged Person', categories: ['Male', 'Female'] },
     { name: 'Senior', categories: ['Male', 'Female'] },
     { name: 'Elderly', categories: ['Male', 'Female'] },
-
-
-    // Add more age groups as needed
   ];
 
-  const races = ['White', 'Black', 'Hispanic', 'Asian'];
+  const races = ['White', 'Black', 'Asian', 'Indian'];
 
   const handleNextStep = () => {
     if (currentStep < ageGroups.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Last step, submit the form data
       submitFormData();
     }
   };
@@ -64,7 +60,7 @@ const AgeGroupForm = () => {
   const submitFormData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/v1/images/dataset/', {
+      const response = await fetch('http://localhost:8000/v1/datasets/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
