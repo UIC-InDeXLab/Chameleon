@@ -15,7 +15,7 @@ load_dotenv()
 
 app = FastAPI()
 
-origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://10.8.246.165"]
+origins = ["http://localhost:3000", "http://127.0.0.1:3000", os.getenv("PUBLIC_IP", "http://127.0.0.1:3000")]
 
 app.add_middleware(
     CORSMiddleware,
