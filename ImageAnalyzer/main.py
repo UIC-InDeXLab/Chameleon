@@ -102,6 +102,13 @@ async def get_random_image_by_pattern(dataset_id: str, pattern: str, include_gen
     return schemas.ExportImageBase.model_construct(**db_image.to_dict())
 
 
+@app.get("/v1/datasets/{dataset_id}/images/random/")
+async def get_random_image_from_dataset(dataset_id: str, include_generated_images: bool = False):
+    db_image = csv_crud.get_random_image(ds_id=dataset_id, is_generated=None if include_generated_images else False)
+
+    return schemas.ExportImageBase.model_construct(**db_image.to_dict())
+
+
 @app.get("/v1/datasets/{dataset_id}/prompt/{pattern}/")
 def generate_prompt(dataset_id: str, pattern: str, include_generated_images: bool = True):
     p = AgeGroupGenderRacePattern(pattern)
