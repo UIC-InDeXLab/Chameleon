@@ -31,34 +31,52 @@ logger = logging.getLogger(__name__)
 
 @app.post("/v1/datasets/{dataset_id}/mups/generate/")
 async def generate_images(dataset_id: str, request: Request):
-    def store_outputs(mup, base, mask, final):
+    def store_outputs(mup, final):
         current_time = datetime.datetime.now()
         dir_name = os.path.join(os.getenv("GENERATION_PATH"), dataset_id)
-        file_name = f"{'_'.join(list(mup.pattern))}_{current_time.strftime('%Y%m%d%H%M%S%f')}.png"
-        store_png_files([f"base-{file_name}.png", f"mask-{file_name}.png", file_name], [base, mask, final], dir_name)
-        store_mup(mup, f"mup-{file_name}.json", dir_name)
-        mup.add_image(f"{dataset_id}/{file_name}")
+        file_name = f"{'_'.join(list(mup.pattern))}_{current_time.strftime('%Y%m%d%H%M%S%f')}"
+        store_png_files(dir_name, [f"{file_name}.png"], [final])
+        mup.add_image(f"{dataset_id}/{file_name}.png")
         logger.info(
             f"new {mup.pattern}/{mup.prompt} generated: {dir_name}, # remaining: {mup.get_count_needed(threshold)}")
+        return file_name
+
+    def store_metadata(file_name, mup, base, mask):
+        dir_name = os.path.join(os.getenv("GENERATION_PATH"), dataset_id)
+        mask_dir, base_dir, mup_dir = os.path.join(dir_name, "masks"), os.path.join(dir_name, "base_images"),  os.path.join(dir_name, "mups")
+        store_png_files(mask_dir, [f"{file_name}.png"], [mask])
+        store_png_files(base_dir, [f"{file_name}.png"], [base])
+        store_mup(mup, f"{file_name}.json", mup_dir)
         return file_name
 
     data = await request.json()
     pattern = data["pattern"]
     threshold = int(data["threshold"])
     limit = int(data["limit"])
+    strategy = data["strategy"]
+    accuracy = data["accuracy"]
 
     frequency, prompt = services.get_pattern_details(dataset_id, pattern)
     mup = MaximalUncoveredPattern(pattern=pattern, frequency=frequency, prompt=prompt)
     num_generated = 0
     while not mup.is_satisfied(threshold) and num_generated < limit:
         try:
-            base_image_details = services.get_mup_random_image(dataset_id, mup)
-            base_image = load_image(base_image_details["filename"], base_image_details["is_generated"])
-            mask = services.get_mask(base_image)
-            generated_image_json = services.generate_image_by_prompt(base_image, mask, mup.prompt)
-            new_image_url = json.loads(generated_image_json.decode("utf-8"))["data"][0]["url"]
-            final_image = services.get_image_from_url(new_image_url)
-            store_outputs(mup, base_image, mask, final_image)
+            if strategy == "none":
+                generated_image_json = services.generate_image(mup.prompt)
+                new_image_url = generated_image_json["data"][0]["url"]
+                final_image = services.get_image_from_url(new_image_url)
+                store_outputs(mup, final_image)
+            else:
+                base_image_details = services.get_mup_similar_image(dataset_id, mup) if strategy == "similar" \
+                    else services.get_random_image(dataset_id)
+                base_image = load_image(base_image_details["filename"], base_image_details["is_generated"])
+                mask = services.get_mask(base_image, accuracy)
+                generated_image_json = services.edit_image(base_image, mask, mup.prompt)
+                new_image_url = json.loads(generated_image_json.decode("utf-8"))["data"][0]["url"]
+                final_image = services.get_image_from_url(new_image_url)
+                file_name = store_outputs(mup, final_image)
+                store_metadata(file_name, mup, base_image, mask)
+
             num_generated += 1
         except Exception:
             continue

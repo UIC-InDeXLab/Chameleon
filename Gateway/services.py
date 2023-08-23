@@ -18,12 +18,17 @@ def get_image_details(dataset_id: str, filename: str):
     return connector.get_image_details(dataset_id, filename)
 
 
-def get_mup_random_image(dataset_id: str, mup: MaximalUncoveredPattern):
+def get_mup_similar_image(dataset_id: str, mup: MaximalUncoveredPattern):
     similar_patterns = get_similar_patterns(dataset_id, mup)
     choice: Pattern = random.choices(similar_patterns, weights=[sp.frequency for sp in similar_patterns])[0]
     mup.chosen_similar_pattern = choice
     connector = ImageAnalyzerConnector()
     return connector.get_random_image_from_pattern(dataset_id=dataset_id, pattern=choice.pattern)
+
+
+def get_random_image(dataset_id: str):
+    connector = ImageAnalyzerConnector()
+    return connector.get_random_image_from_dataset(dataset_id=dataset_id)
 
 
 def get_similar_patterns(dataset_id: str, mup: MaximalUncoveredPattern) -> list[Pattern]:
@@ -35,14 +40,19 @@ def get_similar_patterns(dataset_id: str, mup: MaximalUncoveredPattern) -> list[
     return similar_patterns
 
 
-def get_mask(base_image):
+def get_mask(base_image, accuracy_level: str):
     connector = MaskGeneratorConnector()
-    return connector.get_mask(base_image)
+    return connector.get_mask(base_image, accuracy_level)
 
 
-def generate_image_by_prompt(base_image, mask, prompt, size="256x256", n=1):
+def edit_image(base_image, mask, prompt, size="256x256", n=1):
     connector = ImageEditorConnector()
-    return connector.generate_new_image(base_image, mask, prompt, size, n)
+    return connector.edit_image(base_image, mask, prompt, size, n)
+
+
+def generate_image(prompt, size="256x256", n=1):
+    connector = ImageEditorConnector()
+    return connector.generate_image(prompt, size=size, n=n)
 
 
 def get_image_from_url(url):

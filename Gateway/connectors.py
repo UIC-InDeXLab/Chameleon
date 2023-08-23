@@ -38,6 +38,9 @@ class ImageAnalyzerConnector(Connector):
     def get_random_image_from_pattern(self, dataset_id: str, pattern: str):
         return self.get_json_data(f"/v1/datasets/{dataset_id}/images/pattern/{pattern}/")
 
+    def get_random_image_from_dataset(self, dataset_id: str):
+        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/random/")
+
     def get_pattern_details(self, dataset_id: str, pattern: str):
         return self.get_json_data(f"/v1/datasets/{dataset_id}/prompt/{pattern}/")
 
@@ -66,7 +69,7 @@ class ImageEditorConnector(Connector):
     def __init__(self):
         super().__init__(os.getenv("IMAGE_EDITOR_BASE_URL"))
 
-    def generate_new_image(self, base_image, mask, prompt, size="256x256", n=1):
+    def edit_image(self, base_image, mask, prompt, size="256x256", n=1):
         files = {
             'image': base_image,
             'mask': mask,
@@ -78,13 +81,24 @@ class ImageEditorConnector(Connector):
         }
         return self.post_files("/v1/images/edits", files=files, params=params)
 
+    def generate_image(self, prompt:str, size="256x256", n=1):
+        params = {
+            'prompt': prompt,
+            'n': str(n),
+            'size': size
+        }
+        return self.post_form_data("/v1/images/generations", params=params)
+
 
 class MaskGeneratorConnector(Connector):
     def __init__(self):
         super().__init__(os.getenv("MASK_GENERATOR_BASE_URL"))
 
-    def get_mask(self, image):
+    def get_mask(self, image, accuracy_level):
         files = {
             'image': image,
         }
-        return self.post_files("/v1/images/masks", files=files)
+        params = {
+            'accuracy_level': accuracy_level,
+        }
+        return self.post_files("/v1/images/masks", files=files, params=params)

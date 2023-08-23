@@ -4,7 +4,7 @@ import os
 from models import MUPEncoder
 
 
-def store_png_files(png_files_names, png_binaries, dir):
+def store_png_files(dir, png_files_names, png_binaries):
     if not os.path.exists(dir):
         os.mkdir(dir)
 
