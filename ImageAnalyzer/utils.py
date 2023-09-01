@@ -14,6 +14,17 @@ def get_image_full_path(filename):
     return os.path.join(assert_env_var_not_none("RESOURCES_PATH"), filename)
 
 
+def convert_list_to_dict(l: list) -> dict:
+    q = {}
+    if l is None:
+        return q
+
+    for i in l:
+        k, v = i.split("=")
+        q[k] = int(v)
+    return q
+
+
 def timeit(func):
     @wraps(func)
     def timeit_wrapper(*args, **kwargs):

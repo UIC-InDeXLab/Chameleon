@@ -1,0 +1,52 @@
+{
+  "datasets": [
+    {
+      "name": "ds_name",
+      "resource_path": "/home/mahdi/PycharmProjects/FairnessLens/resources",
+      "csv_path": "/home/mahdi/PycharmProjects/FairnessLens/ImageAnalyzer/main.csv",
+      "attributes": [
+        {
+          "name": "age_group",
+          "column_number": 1,
+          "position": 2,
+          "cardinality": 8,
+          "ordered": true,
+          "mapping": {
+            "0": "infant",
+            "1": "preschooler",
+            "2": "school age child",
+            "3": "adolescents",
+            "4": "young adult",
+            "5": "adult",
+            "6": "middle aged person",
+            "7": "elderly"
+          }
+        },
+        {
+          "name": "gender",
+          "cardinality": 2,
+          "position": 1,
+          "column_number": 2,
+          "ordered": false,
+          "mapping": {
+            "0": "male",
+            "1": "female"
+          }
+        },
+        {
+          "name": "race",
+          "cardinality": 4,
+          "column_number": 3,
+          "ordered": false,
+          "position": 0,
+          "mapping": {
+            "0": "white",
+            "1": "black",
+            "2": "asian",
+            "3": "indian"
+          }
+        }
+      ]
+    }
+  ]
+}
