@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import './RepairDatasetDetails.css'; 
+import './RepairDatasetDetails.css';
 import { BASE_BACKEND_URL } from './api';
-
 
 const RepairDatasetDetails = () => {
   const { id } = useParams();
   const [count, setCount] = useState(0);
   const [threshold, setThreshold] = useState('');
-  const [mups, setMups] = useState([]);
-  const [bestMup, setBestMup] = useState(null);
+  const [maskAccuracy, setMaskAccuracy] = useState('accurate');
+  const [baseImageStrategy, setBaseImageStrategy] = useState('similar');
+  const [bestMups, setBestMups] = useState({});
+  const [mups, setMups] = useState({});
+  const [lastGeneratedMup, setLastGeneratedMup] = useState('');
+  const [attributes, setAttributes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [selectedImages, setSelectedImages] = useState([]);  
+  const [selectedImages, setSelectedImages] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
@@ -39,10 +42,13 @@ const RepairDatasetDetails = () => {
 
     try {
       // Fetch MUPs response from the backend using the provided threshold and dataset ID
-      const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets/${id}/mups/?threshold=${threshold}`);
+      const response = await fetch(
+        `${BASE_BACKEND_URL}/v1/datasets/${id}/mups/?threshold=${threshold}`
+      );
       const data = await response.json();
       setMups(data.mups);
-      setBestMup(data.best_mups[0]); // Get the best MUP from the response
+      setBestMups(data.best_mups);
+      setAttributes(data.attributes);
     } catch (error) {
       console.error('Error finding MUPs:', error);
     } finally {
@@ -52,27 +58,37 @@ const RepairDatasetDetails = () => {
 
   const handleRepair = async () => {
     setIsGenerating(true);
-  
+    console.log(threshold, maskAccuracy, baseImageStrategy);
+
     try {
       // Post best MUP pattern and threshold to the backend for generating images
-      const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets/${id}/mups/generate/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pattern: bestMup.pattern,
-          threshold: threshold,
-          limit: 9,
-        }),
-      });
-  
+      const response = await fetch(
+        `${BASE_BACKEND_URL}/v1/datasets/${id}/mups/generate/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            pattern: Object.keys(bestMups)[0],
+            threshold: threshold,
+            accuracy: maskAccuracy,
+            strategy: baseImageStrategy,
+            frequency: Object.values(bestMups)[0]?.count, 
+            prompt: Object.values(bestMups)[0]?.prompt, 
+            attributes: attributes,
+            limit: 9,
+          }),
+        }
+      );
+
       if (response.ok) {
         const data = await response.json();
-        console.log(data.generated_images)
+        console.log(data.generated_images);
         setGeneratedImages(data.generated_images);
-        setMups([]);
-        setBestMup(null);
+        setMups({});
+        setLastGeneratedMup(Object.keys(bestMups)[0]);
+        setBestMups({});
       } else {
         console.error('Error generating images:', response.statusText);
       }
@@ -84,7 +100,6 @@ const RepairDatasetDetails = () => {
   };
 
   const handleImageClick = (image) => {
-
     // Toggle the selected state of the image
     setSelectedImages((prevSelectedImages) =>
       prevSelectedImages.includes(image)
@@ -103,15 +118,20 @@ const RepairDatasetDetails = () => {
       );
 
       // Post acceptable images list to the backend
-      const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets/${id}/images/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          acceptable_images: acceptableImages,
-        }),
-      });
+      const response = await fetch(
+        `${BASE_BACKEND_URL}/v1/datasets/${id}/images/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            acceptable_images: acceptableImages,
+            attributes: attributes,
+            pattern: lastGeneratedMup,
+          }),
+        }
+      );
 
       if (response.ok) {
         // Handle success
@@ -133,10 +153,12 @@ const RepairDatasetDetails = () => {
 
     try {
       // Fetch MUPs response from the backend using the current threshold and dataset ID
-      const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets/${id}/mups/?threshold=${threshold}`);
+      const response = await fetch(
+        `${BASE_BACKEND_URL}/v1/datasets/${id}/mups/?threshold=${threshold}`
+      );
       const data = await response.json();
       setMups(data.mups);
-      setBestMup(data.best_mups[0]);
+      setBestMups(data.best_mups);
       setGeneratedImages([]);
       setHasSubmitted(false); // Reset submission status
     } catch (error) {
@@ -149,14 +171,35 @@ const RepairDatasetDetails = () => {
   return (
     <div>
       <h1>Dataset {id} has {count} images</h1>
-      {bestMup && (
+      {Object.keys(bestMups).length > 0 && (
         <div className="best-mup-box">
           <p>
-            The best MUP to repair is {bestMup.prompt} with a frequency of {bestMup.frequency}.
+            The best MUP to repair is <b>{Object.values(bestMups)[0]?.prompt}</b> with a frequency of{' '}
+            <b>{Object.values(bestMups)[0]?.count}</b>.
           </p>
-          <button onClick={handleRepair} className="repair-button">
-            Repair
-          </button>
+          <div className="options">
+            <label>Mask Accuracy:</label>
+            <select
+              value={maskAccuracy}
+              onChange={(e) => setMaskAccuracy(e.target.value)}
+            >
+              <option value="accurate">Accurate</option>
+              <option value="moderate">Moderate</option>
+              <option value="imprecise">Imprecise</option>
+            </select>
+            <label>Base Image Strategy:</label>
+            <select
+              value={baseImageStrategy}
+              onChange={(e) => setBaseImageStrategy(e.target.value)}
+            >
+              <option value="similar">Similar Images</option>
+              <option value="random">Random</option>
+              <option value="none">No Base Image</option>
+            </select>
+            <button onClick={handleRepair} className="repair-button">
+              Repair
+            </button>
+          </div>
         </div>
       )}
       {isLoading ? (
@@ -165,10 +208,13 @@ const RepairDatasetDetails = () => {
         </div>
       ) : isGenerating ? (
         <div className="center-content">
-          <p>Generating..., It usually takes about 5 minutes to generate a full batch, don't refresh the page</p>
+          <p>
+            Generating..., It usually takes about 5 minutes to generate a full
+            batch, don't refresh the page
+          </p>
         </div>
       ) : (
-        mups.length === 0 ? (
+        Object.keys(mups).length === 0 ? (
           <form onSubmit={handleFindMUPs}>
             <label>
               Threshold:
@@ -186,18 +232,18 @@ const RepairDatasetDetails = () => {
           </form>
         ) : (
           <div className="mups-list">
-            <h2>MUPs List:</h2>
+            <h2>Maximal Uncovered Patterns:</h2>
             <ul className="mups-box">
-              {mups.map((mup, index) => (
-                <li key={index}>
-                  {`${index + 1}. ${mup.prompt}: ${mup.frequency}`}
+              {Object.keys(mups).map((key) => (
+                <li key={key}>
+                  {`${mups[key]?.prompt}: ${mups[key]?.count}`}
                 </li>
               ))}
             </ul>
           </div>
         )
       )}
-      {generatedImages.length > 0 && !hasSubmitted &&  (
+      {generatedImages.length > 0 && !hasSubmitted && (
         <div className="generated-images">
           <h2>Generated Images:</h2>
           <div className="images-grid">

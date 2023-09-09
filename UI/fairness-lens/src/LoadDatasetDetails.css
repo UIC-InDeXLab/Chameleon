@@ -1,0 +1,81 @@
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 10%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+  }
+  
+  .image {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .pagination button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin: 0 5px;
+  }
+  
+  .pagination span {
+    font-weight: bold;
+    margin: 0 10px;
+  }
+  
+  .filters {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .filters label {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  
+  .filters select {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+  }
+
+  .repair {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .repair-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: background-color 0.3s;
+  }
+  
+  .repair-button:hover {
+    background-color: #0056b3;
+  }
+  
+  
+  
+  
+  

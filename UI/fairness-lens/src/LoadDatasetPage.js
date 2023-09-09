@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate instead of useHistory
-import './RepairDatasetPage.css'; // Import the CSS file
+import './LoadDatasetPage.css'; // Import the CSS file
 import { BASE_BACKEND_URL } from './api';
 
 
-const RepairDatasetPage = () => {
+const LoadDatasetPage = () => {
   const [datasetId, setDatasetId] = useState('');
   const navigate = useNavigate(); // Use useNavigate instead of useHistory
 
@@ -21,7 +21,7 @@ const RepairDatasetPage = () => {
       const data = await response.json();
 
       // Redirect to the dataset details page
-      navigate(`/repair-dataset/${datasetId}`, { state: { datasetDetails: data } });
+      navigate(`/load-dataset/${datasetId}`, { state: { datasetDetails: data } });
     } catch (error) {
       console.error('Error loading dataset:', error);
     }
@@ -48,4 +48,4 @@ const RepairDatasetPage = () => {
   );
 };
 
-export default RepairDatasetPage;
+export default LoadDatasetPage;

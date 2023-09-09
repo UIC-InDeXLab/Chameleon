@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import clipboardCopy from 'clipboard-copy';
 import './AgeGroupForm.css';
 import { BASE_BACKEND_URL } from './api';
@@ -7,24 +7,30 @@ const AgeGroupForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState([]);
   const [responseMessage, setResponseMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
+  const [ageGroups, setAgeGroups] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [races, setRaces] = useState([]);
 
-  const ageGroups = [
-    { name: 'Infant', categories: ['Male', 'Female'] },
-    { name: 'Preschooler', categories: ['Male', 'Female'] },
-    { name: 'School age child', categories: ['Male', 'Female'] },
-    { name: 'Adolescents', categories: ['Male', 'Female'] },
-    { name: 'Young Adult', categories: ['Male', 'Female'] },
-    { name: 'Adult', categories: ['Male', 'Female'] },
-    { name: 'Middle Aged Person', categories: ['Male', 'Female'] },
-    { name: 'Senior', categories: ['Male', 'Female'] },
-    { name: 'Elderly', categories: ['Male', 'Female'] },
-  ];
+  useEffect(() => {
+    fetchFormData();
+  }, []);
 
-  const races = ['White', 'Black', 'Asian', 'Indian'];
+  const fetchFormData = async () => {
+    try {
+      const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets`);
+      const data = await response.json();
+      console.log(data.attributes[0].mapping)
+      setAgeGroups(data.attributes[0].mapping);
+      setCategories(data.attributes[1].mapping);
+      setRaces(data.attributes[2].mapping);
+    } catch (error) {
+      console.error('Error fetching form data:', error);
+    }
+  };
 
   const handleNextStep = () => {
-    if (currentStep < ageGroups.length - 1) {
+    if (currentStep < Object.keys(ageGroups).length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       submitFormData();
@@ -73,7 +79,7 @@ const AgeGroupForm = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({"age_groups" : formData}),
+        body: JSON.stringify({ "age_groups": formData }),
       });
 
       if (response.ok) {
@@ -100,8 +106,7 @@ const AgeGroupForm = () => {
       setResponseMessage(
         'Sorry, we couldn\'t perform your operation right now, please try again later'
       );
-    }
-    finally {
+    } finally {
       setIsLoading(false);
     }
   };
@@ -109,23 +114,23 @@ const AgeGroupForm = () => {
   return (
     <div className="container">
       <div className="step">
-        {ageGroups.map((ageGroup, index) =>
+        {Object.keys(ageGroups).map((ageGroupKey, index) =>
           index === currentStep ? (
             <div key={index}>
-              <h2>{ageGroup.name}</h2>
+              <h2>{ageGroups[ageGroupKey]}</h2>
               <div className="categories-row">
-                {ageGroup.categories.map((category) => (
-                  <div className="category" key={category}>
-                    <h3>{category}</h3>
-                    {races.map((race) => (
-                      <div className="race" key={race}>
-                        <label>{race}:</label>
+                {Object.keys(categories).map((categoryKey) => (
+                  <div className="category" key={categoryKey}>
+                    <h3>{categories[categoryKey]}</h3>
+                    {Object.keys(races).map((raceKey) => (
+                      <div className="race" key={raceKey}>
+                        <label>{races[raceKey]}:</label>
                         <input
                           type="number"
                           min="0"
-                          value={formData[currentStep]?.[ageGroup.name]?.[category]?.[race] || ''}
+                          value={formData[currentStep]?.[ageGroupKey]?.[categoryKey]?.[raceKey] || ''}
                           onChange={(e) =>
-                            handleInputChange(ageGroup.name, category, race, e.target.value)
+                            handleInputChange(ageGroupKey, categoryKey, raceKey, e.target.value)
                           }
                         />
                       </div>
@@ -136,7 +141,7 @@ const AgeGroupForm = () => {
               {currentStep > 0 && (
                 <button onClick={handlePreviousStep}>Previous</button>
               )}
-              {currentStep === ageGroups.length - 1 ? (
+              {currentStep === Object.keys(ageGroups).length - 1 ? (
                 <button onClick={handleNextStep}>Submit</button>
               ) : (
                 <button onClick={handleNextStep}>Next</button>
@@ -146,10 +151,10 @@ const AgeGroupForm = () => {
         )}
       </div>
       <div className="response-message">
-      {isLoading ? (
-          <p>Please wait while we create your dataset...</p> 
+        {isLoading ? (
+          <p>Please wait while we create your dataset...</p>
         ) : (
-          responseMessage 
+          responseMessage
         )}
       </div>
     </div>
@@ -157,4 +162,3 @@ const AgeGroupForm = () => {
 };
 
 export default AgeGroupForm;
-

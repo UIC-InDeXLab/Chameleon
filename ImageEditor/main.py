@@ -15,3 +15,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 async def edit_image(image: UploadFile, prompt: str, mask: UploadFile = None, n: int = 4, size: str = "512x512"):
     return await openai.Image.acreate_edit(image=image.file.read(), mask=mask.file.read() if mask else None,
                                            prompt=prompt, n=n, size=size)
+
+
+@app.post("/v1/images/generations")
+async def generate_image(prompt: str, n: int = 4, size: str = "512x512"):
+    return await openai.Image.acreate(prompt=prompt, n=n, size=size)

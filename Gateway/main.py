@@ -8,8 +8,8 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 import services
-from models import MaximalUncoveredPattern
-from utils import store_png_files, store_mup, load_image
+from models import MaximalUncoveredPattern, Attribute
+from utils import store_png_files, store_mup, load_image, convert_list_to_dict
 
 load_dotenv()
 
@@ -43,7 +43,9 @@ async def generate_images(dataset_id: str, request: Request):
 
     def store_metadata(file_name, mup, base, mask):
         dir_name = os.path.join(os.getenv("GENERATION_PATH"), dataset_id)
-        mask_dir, base_dir, mup_dir = os.path.join(dir_name, "masks"), os.path.join(dir_name, "base_images"),  os.path.join(dir_name, "mups")
+        mask_dir, base_dir, mup_dir = os.path.join(dir_name, "masks"), os.path.join(dir_name,
+                                                                                    "base_images"), os.path.join(
+            dir_name, "mups")
         store_png_files(mask_dir, [f"{file_name}.png"], [mask])
         store_png_files(base_dir, [f"{file_name}.png"], [base])
         store_mup(mup, f"{file_name}.json", mup_dir)
@@ -55,9 +57,12 @@ async def generate_images(dataset_id: str, request: Request):
     limit = int(data["limit"])
     strategy = data["strategy"]
     accuracy = data["accuracy"]
+    frequency = data["frequency"]
+    prompt = data["prompt"]
+    attributes = data["attributes"]
 
-    frequency, prompt = services.get_pattern_details(dataset_id, pattern)
-    mup = MaximalUncoveredPattern(pattern=pattern, frequency=frequency, prompt=prompt)
+    mup = MaximalUncoveredPattern(pattern=pattern, frequency=frequency, prompt=prompt,
+                                  attributes=[Attribute(**a) for a in attributes])
     num_generated = 0
     while not mup.is_satisfied(threshold) and num_generated < limit:
         try:
@@ -78,7 +83,8 @@ async def generate_images(dataset_id: str, request: Request):
                 store_metadata(file_name, mup, base_image, mask)
 
             num_generated += 1
-        except Exception:
+        except Exception as e:
+            print(e)
             continue
 
     return {"generated_images": mup.generated_images}
@@ -86,26 +92,35 @@ async def generate_images(dataset_id: str, request: Request):
 
 @app.get("/v1/datasets/{dataset_id}/mups/")
 async def get_mups(dataset_id: str, threshold: int):
-    best_mups_patterns, mups_patterns = services.get_mups_details(dataset_id, threshold)
-    mups_details, best_mups_details = [], []
-
-    for p in mups_patterns:
-        count, prompt = services.get_pattern_details(dataset_id, p)
-        mups_details.append(MaximalUncoveredPattern(p, count, prompt))
-    for p in best_mups_patterns:
-        count, prompt = services.get_pattern_details(dataset_id, p)
-        best_mups_details.append(MaximalUncoveredPattern(p, count, prompt))
-
-    return {"mups": mups_details, "best_mups": best_mups_details}
+    mup_details = services.get_mups_details(dataset_id, threshold)
+    return mup_details
 
 
 @app.post("/v1/datasets/{dataset_id}/images/")
 async def submit_acceptable_images(dataset_id: str, request: Request):
     data = await request.json()
     acceptable_images = data["acceptable_images"]
+    attributes = data["attributes"]
+    pattern = data["pattern"]
     for image in acceptable_images:
-        services.add_image_to_dataset(dataset_id, image)
+        services.add_image_to_dataset(dataset_id, image, pattern, attributes=[Attribute(**a) for a in attributes])
     return {"success": True}
+
+
+@app.get("/v1/datasets/{dataset_id}/images/")
+async def get_dataset_images(dataset_id: str, skip: int = 0, limit: int | None = None,
+                             filters: str = None, is_generated: bool | None = None):
+    images = services.get_dataset_images(dataset_id, skip, limit, filters=convert_list_to_dict(
+        str(filters).split(",") if filters is not None else None),
+                                         is_generated=is_generated)
+
+    return {"images": [img["filename"] for img in images]}
+
+
+@app.get("/v1/datasets/")
+def get_current_main_dataset():
+    result = services.get_current_main_dataset()
+    return result
 
 
 @app.get("/v1/datasets/{dataset_id}/")
@@ -130,6 +145,7 @@ async def get_image(dataset_id: str, image_name: str, is_generated: bool = None)
     else:
         image_path = os.path.join(os.getenv("RESOURCES_PATH"), image_name)
     if not os.path.exists(image_path):
+        print(image_path)
         raise Exception()
 
     with open(image_path, "rb") as f:

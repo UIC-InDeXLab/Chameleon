@@ -1,29 +1,65 @@
 import json
 from json import JSONEncoder
+from typing import List
+
+
+class Attribute:
+    def __init__(self, name: str, cardinality: int, ordered: bool, position: int, column_number: int,
+                 pattern_index: int, mapping: dict):
+        self.column_number = column_number
+        self.name = name
+        self.cardinality = cardinality
+        self.ordered = ordered
+        self.mapping = mapping
+        self.position = position
+        self.pattern_index = pattern_index
 
 
 class Pattern:
-    def __init__(self, pattern: str, frequency: int, prompt: str):
+    def __init__(self, pattern: str, frequency: int, prompt: str, attributes: List[Attribute]):
         self.pattern = pattern
         self.frequency = frequency
         self.prompt = prompt
+        self.attributes = attributes
+
+    def get_attribute_by_name(self, name):
+        for a in self.attributes:
+            if a.name == name:
+                return a
+        return None
+
+    def get_attribute_by_pattern_index(self, index):
+        for a in self.attributes:
+            if a.pattern_index == index:
+                return a
+        return None
+
+    def convert_pattern_to_filters(self, pattern: str):
+        filters = {}
+        for i, c in enumerate(list(pattern)):
+            filters[self.get_attribute_by_pattern_index(i).name] = int(c)
+
+        return filters
+
+    def substitute_one_attribute_value(self, attribute_index, val):
+        return self.pattern[:attribute_index] + str(val) + self.pattern[attribute_index + 1:]
 
     @property
-    def age_group(self):
-        return int(list(self.pattern)[0])
+    def num_attributes(self):
+        return len(self.attributes)
 
     @property
-    def gender(self):
-        return int(list(self.pattern)[1])
+    def cardinality_of_attributes(self):
+        return [a.cardinality for a in self.attributes]
 
     @property
-    def race(self):
-        return int(list(self.pattern)[2])
+    def attributes_ids(self):
+        return [a.column_number for a in self.attributes]
 
 
 class MaximalUncoveredPattern(Pattern):
-    def __init__(self, pattern: str, frequency: int, prompt: str):
-        super().__init__(pattern, frequency, prompt)
+    def __init__(self, pattern: str, frequency: int, prompt: str, attributes):
+        super().__init__(pattern, frequency, prompt, attributes)
         self.chosen_similar_pattern: Pattern | None = None
         self.generated_images = []
 
@@ -37,37 +73,19 @@ class MaximalUncoveredPattern(Pattern):
         return threshold - len(self.generated_images) - self.frequency
 
     @property
-    def similar_races(self):
-        choices = list(range(0, 4))
-        choices.remove(self.race)
-        return choices
-
-    @property
-    def similar_genders(self):
-        return [1] if self.gender == 0 else [0]
-
-    @property
-    def similar_age_groups(self):
-        if self.age_group == 0:
-            return [1]
-        elif self.age_group == 8:
-            return [7]
-        else:
-            return [self.age_group - 1, self.age_group + 1]
-
-    @property
     def similar_patterns_strings(self) -> list[str]:
         patterns = []
-        for a in self.similar_age_groups:
-            patterns.append("".join([str(a), str(self.gender), str(self.race)]))
+        for i, c in enumerate(list(self.pattern)):
+            attr = self.get_attribute_by_pattern_index(i)
+            if attr.ordered:
+                start = int(c) - 1 if int(c) > 0 else 0
+                end = int(c) + 1 if int(c) < attr.cardinality - 1 else int(c)
+                patterns.extend(
+                    [self.substitute_one_attribute_value(i, index) for index in range(start, end + 1)])
+            else:
+                patterns.extend([self.substitute_one_attribute_value(i, index) for index in range(attr.cardinality)])
 
-        for g in self.similar_genders:
-            patterns.append("".join([str(self.age_group), str(g), str(self.race)]))
-
-        for r in self.similar_races:
-            patterns.append("".join([str(self.age_group), str(self.gender), str(r)]))
-
-        return patterns
+        return [p for p in patterns if p != self.pattern]
 
 
 class MUPEncoder(JSONEncoder):

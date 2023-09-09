@@ -1,16 +1,11 @@
 import random
+from typing import List
 
 import requests
 
 import connectors
 from connectors import ImageAnalyzerConnector, MaskGeneratorConnector, ImageEditorConnector
-from models import MaximalUncoveredPattern, Pattern
-
-
-def get_pattern_details(dataset_id: str, pattern: str) -> (int, str):
-    connector = ImageAnalyzerConnector()
-    details = connector.get_pattern_details(dataset_id=dataset_id, pattern=pattern)
-    return int(details["count"]), str(details["prompt"])
+from models import MaximalUncoveredPattern, Pattern, Attribute
 
 
 def get_image_details(dataset_id: str, filename: str):
@@ -18,12 +13,19 @@ def get_image_details(dataset_id: str, filename: str):
     return connector.get_image_details(dataset_id, filename)
 
 
+def get_dataset_images(dataset_id: str, skip=0, limit=None, filters: dict = None, is_generated=None):
+    connector = ImageAnalyzerConnector()
+    return connector.get_dataset_images(dataset_id, skip, limit, filters=filters, is_generated=is_generated)
+
+
 def get_mup_similar_image(dataset_id: str, mup: MaximalUncoveredPattern):
     similar_patterns = get_similar_patterns(dataset_id, mup)
     choice: Pattern = random.choices(similar_patterns, weights=[sp.frequency for sp in similar_patterns])[0]
     mup.chosen_similar_pattern = choice
     connector = ImageAnalyzerConnector()
-    return connector.get_random_image_from_pattern(dataset_id=dataset_id, pattern=choice.pattern)
+    res = connector.get_random_image_from_dataset(dataset_id=dataset_id,
+                                                  filters=mup.convert_pattern_to_filters(choice.pattern))
+    return res
 
 
 def get_random_image(dataset_id: str):
@@ -33,9 +35,10 @@ def get_random_image(dataset_id: str):
 
 def get_similar_patterns(dataset_id: str, mup: MaximalUncoveredPattern) -> list[Pattern]:
     similar_patterns: list[Pattern] = []
+    connector = ImageAnalyzerConnector()
     for p in mup.similar_patterns_strings:
-        frequency, prompt = get_pattern_details(dataset_id, p)
-        similar_patterns.append(Pattern(p, frequency, prompt))
+        res = connector.get_images_details(dataset_id, mup.convert_pattern_to_filters(p))
+        similar_patterns.append(Pattern(p, res["count"], res["prompt"], mup.attributes))
 
     return similar_patterns
 
@@ -71,18 +74,15 @@ def create_partial_ds(data):
 
 def get_mups_details(dataset_id: str, threshold: int):
     connector = connectors.ImageAnalyzerConnector()
-    res = connector.get_mups(dataset_id, threshold)
-    best_mups = res["best_mups"]
-    mups = res["mups"]
-    return best_mups, mups
+    return connector.get_mups(dataset_id, threshold)
 
 
-def get_mups_patterns(dataset_id: str, threshold: int):
+def add_image_to_dataset(dataset_id: str, file_name: str, pattern:str, attributes: List[Attribute] = None):
     connector = connectors.ImageAnalyzerConnector()
-    mups: list[str] = connector.get_mups(dataset_id, threshold)["mups"]
-    return mups
+    p = Pattern(pattern, 0, "", attributes)
+    return connector.create_image(dataset_id, file_name, p.convert_pattern_to_filters(pattern))
 
 
-def add_image_to_dataset(dataset_id: str, file_name: str):
+def get_current_main_dataset():
     connector = connectors.ImageAnalyzerConnector()
-    return connector.create_image(dataset_id, file_name)
+    return connector.get_current_main_dataset()

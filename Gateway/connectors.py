@@ -35,24 +35,30 @@ class ImageAnalyzerConnector(Connector):
     def __init__(self):
         super().__init__(os.getenv("IMAGE_ANALYZER_BASE_URL"))
 
-    def get_random_image_from_pattern(self, dataset_id: str, pattern: str):
-        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/pattern/{pattern}/")
+    def get_random_image_from_dataset(self, dataset_id: str, filters: dict = None, include_generated_image=None):
+        if filters is None:
+            filters = {}
+        params = {"include_generated_images": include_generated_image,
+                  "filters": [f"{k}={v}" for k, v in filters.items()]}
 
-    def get_random_image_from_dataset(self, dataset_id: str):
-        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/random/")
-
-    def get_pattern_details(self, dataset_id: str, pattern: str):
-        return self.get_json_data(f"/v1/datasets/{dataset_id}/prompt/{pattern}/")
+        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/random/", params=params)
 
     def get_image_details(self, dataset_id: str, filename: str):
         return self.get_json_data(f"/v1/datasets/{dataset_id}/images/{filename}/details/")
 
-    def get_images_count(self, dataset_id: str, gender: str = None, race: str = None, age_group: str = None):
-        params = {k: v for k, v in [('gender', gender), ('race', race), ('age_group', age_group)] if v is not None}
-        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/count/", params=params)
+    def get_images_details(self, dataset_id: str, filters: dict = None, include_generated_images: bool = True):
+        params = {"filters": [f"{k}={v}" for k, v in filters.items() if filters is not None],
+                  "include_generated_images": include_generated_images}
+        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/prompt/", params=params)
 
     def get_dataset_details(self, dataset_id: str):
         return self.get_json_data(f"/v1/datasets/{dataset_id}/images/count/")
+
+    def get_dataset_images(self, dataset_id: str, skip=0, limit=None, filters: dict = None, is_generated=None):
+        params = {"skip": skip, "limit": limit,
+                  "filters": [f"{k}={v}" for k, v in filters.items() if filters is not None],
+                  "is_generated": is_generated}
+        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/", params=params)
 
     def create_partial_ds(self, json):
         return self.post_json_data("/v1/images/export/partial/", json=json)
@@ -61,8 +67,14 @@ class ImageAnalyzerConnector(Connector):
         params = {"threshold": threshold}
         return self.get_json_data(f"/v1/datasets/{dataset_id}/mups/", params=params)
 
-    def create_image(self, dataset_id: str, filename: str):
-        return self.post_form_data(f"/v1/datasets/{filename}/", params=None)
+    def create_image(self, dataset_id: str, filename: str, attributes: dict = None):
+        if attributes is None:
+            filters = {}
+        params = {"attributes": [f"{k}={v}" for k, v in attributes.items()]}
+        return self.post_form_data(f"/v1/datasets/{filename}/", params=params)
+
+    def get_current_main_dataset(self):
+        return self.get_json_data(f"/v1/datasets/details/")
 
 
 class ImageEditorConnector(Connector):
@@ -81,7 +93,7 @@ class ImageEditorConnector(Connector):
         }
         return self.post_files("/v1/images/edits", files=files, params=params)
 
-    def generate_image(self, prompt:str, size="256x256", n=1):
+    def generate_image(self, prompt: str, size="256x256", n=1):
         params = {
             'prompt': prompt,
             'n': str(n),

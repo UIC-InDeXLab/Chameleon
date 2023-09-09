@@ -27,3 +27,14 @@ def load_image(filename, is_generated: bool):
         data = f.read()
 
     return data
+
+
+def convert_list_to_dict(l: list) -> dict:
+    q = {}
+    if l is None:
+        return q
+
+    for i in l:
+        k, v = i.split("=")
+        q[k] = int(v)
+    return q

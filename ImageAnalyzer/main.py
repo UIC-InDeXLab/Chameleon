@@ -2,13 +2,14 @@ import json
 import uuid
 from typing import List
 
+import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Query
 
 import csv_crud
 from greedy_mup_selector import MUPTree
 from models import DatasetManager, Dataset
-from utils import assert_env_var_not_none, timeit, convert_list_to_dict
+from utils import assert_env_var_not_none, convert_list_to_dict
 
 load_dotenv()
 
@@ -22,17 +23,13 @@ def load_datasets():
         manager.add_dataset(Dataset(**d))
 
 
-@timeit
-def load_images():
-    pass
-
-
-app = FastAPI(on_startup=[load_datasets, load_images])
+app = FastAPI(on_startup=[load_datasets])
 
 
 @app.get("/v1/datasets/details/")
 def get_current_main_dataset_details():
-    pass
+    manager: DatasetManager = DatasetManager.instance()
+    return manager.get_dataset()
 
 
 @app.get("/v1/datasets/{dataset_id}/images/")
@@ -85,31 +82,56 @@ def generate_prompt(dataset_id: str, filters: List[str] = Query(None), include_g
 def get_best_mup(dataset_id: str, threshold: int):
     manager: DatasetManager = DatasetManager.instance()
     dataset = manager.get_dataset()
-    mups: list[str] = csv_crud.get_mups(dataset_id, threshold, dataset.num_attributes,
-                                        dataset.cardinality_of_attributes, dataset.attributes_ids)
-    mups_dict = {}
-    for m in mups:
-        v = mups_dict.setdefault(m.count("x"), [])
-        v.append(m)
+    mups_patterns: list[str] = csv_crud.get_mups(dataset_id, threshold, dataset.num_attributes,
+                                                 dataset.cardinality_of_attributes, dataset.attributes_ids)
+    mups_level_dict = {}
+    for pattern in mups_patterns:
+        v = mups_level_dict.setdefault(pattern.count("x"), [])
+        v.append(pattern)
 
-    tree = MUPTree(dataset.num_attributes, dataset.cardinality_of_attributes, mups_dict.get(max(mups_dict.keys())))
+    tree = MUPTree(dataset.num_attributes, dataset.cardinality_of_attributes,
+                   mups_level_dict.get(max(mups_level_dict.keys())))
     results = tree.get_best_combinations()
-    results_dict = {}
+    best_mups_dict = {}
+    mups_result_dict = {}
     for node in results:
         filters = [f"{dataset.get_attribute_by_column_number(dataset.attributes_ids[i]).name}={c}" for i, c in
                    enumerate(list(node.pattern))]
-        results_dict[node.pattern] = csv_crud.get_images_count(dataset_id, filters=convert_list_to_dict(filters))
+        best_mups_dict[node.pattern] = {
+            "count": csv_crud.get_images_count(dataset_id, filters=convert_list_to_dict(filters)),
+            "prompt": dataset.get_prompt(filters=convert_list_to_dict(filters))
+        }
 
-    res = {k: v for k, v in sorted(results_dict.items(), key=lambda item: item[1])}
-    return {"best_mups": res, "mups": mups}
+    for pattern in mups_patterns:
+        filters = [f"{dataset.get_attribute_by_column_number(dataset.attributes_ids[i]).name}={c}" for i, c in
+                   enumerate(list(pattern)) if c != "x"]
+        mups_result_dict[pattern] = {
+            "count": csv_crud.get_images_count(dataset_id, filters=convert_list_to_dict(filters)),
+            "prompt": dataset.get_prompt(filters=convert_list_to_dict(filters))
+        }
+
+    res = {k: v for k, v in sorted(best_mups_dict.items(), key=lambda item: item[1]["count"])}
+    return {"best_mups": res, "mups": mups_result_dict, "attributes": dataset.attributes}
 
 
 @app.post("/v1/images/export/partial/")
 async def export_partial_dataset(request: Request):
     data = await request.json()
-    df = None
-    # TODO: need to be done asap
+    df_to_merge = []
+    for i, ag in enumerate(data["age_groups"]):
+        filters = {}
+        age_group_str, age_group_dict = ag.popitem()
+        filters['age_group'] = int(age_group_str)
+        for g, races_dict in age_group_dict.items():
+            filters['gender'] = int(g)
+            for r, count in races_dict.items():
+                filters['race'] = int(r)
+                df_to_merge.append(
+                    csv_crud.get_partial_table_df(ds_id="main", filters=filters, limit=int(count)))
+
+    merged_df = pd.concat(df_to_merge, axis=0, ignore_index=True)
+
     id = str(uuid.uuid4())
-    df.to_csv(f"./datasets/{id}.csv", index=False)
+    merged_df.to_csv(f"./datasets/{id}.csv", index=False)
 
     return {"id": id}

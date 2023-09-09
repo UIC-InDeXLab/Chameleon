@@ -10,8 +10,11 @@ const HomePage = () => {
         <Link to="/create-dataset" className="big-button">
           Create Your Dataset
         </Link>
-        <Link to="/repair-dataset" className="big-button">
+        {/* <Link to="/repair-dataset" className="big-button">
           Repair Your Dataset
+        </Link> */}
+        <Link to="/load-dataset" className="big-button">
+          Load Your Dataset
         </Link>
       </div>
     </div>
