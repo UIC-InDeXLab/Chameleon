@@ -34,9 +34,7 @@ def get_sample_batch(limit: int = 25):
     else:
         df = df.iloc[:limit]
 
-    filtered_df = df.dropna(axis=1, how='all')
-
-    df_without_accepted = filtered_df.drop(columns=['accepted'])
+    df_without_accepted = df.drop(columns=['accepted'])
 
     return df_without_accepted.to_dict(orient='records')
 
