@@ -5,6 +5,7 @@ import AgeGroupForm from './AgeGroupForm';
 import LoadDatasetPage from './LoadDatasetPage';
 import RepairDatasetDetails from './RepairDatasetDetails';
 import LoadDatasetDetails from './LoadDatasetDetails';
+import SampleBatchPage from './SampleBatchPage';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/load-dataset" element={<LoadDatasetPage />} />
         <Route path="/repair-dataset/:id" element={<RepairDatasetDetails />} />
         <Route path="/load-dataset/:id" element={<LoadDatasetDetails />} /> 
+        <Route path="/examine-dataset" element={<SampleBatchPage />} /> 
       </Routes>
     </Router>
   );

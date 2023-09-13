@@ -16,6 +16,9 @@ const HomePage = () => {
         <Link to="/load-dataset" className="big-button">
           Load Your Dataset
         </Link>
+        <Link to="/examine-dataset" className="big-button">
+          Sample Your Dataset
+        </Link>
       </div>
     </div>
   );
