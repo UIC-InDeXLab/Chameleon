@@ -62,6 +62,7 @@ class MaximalUncoveredPattern(Pattern):
         super().__init__(pattern, frequency, prompt, attributes)
         self.chosen_similar_pattern: Pattern | None = None
         self.generated_images = []
+        self.pulled_arms = []
 
     def add_image(self, path: str):
         self.generated_images.append(path)

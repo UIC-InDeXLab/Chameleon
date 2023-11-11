@@ -17,6 +17,7 @@ const RepairDatasetDetails = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
+  const [pulledArms, setPulledArms] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
@@ -77,7 +78,7 @@ const RepairDatasetDetails = () => {
             frequency: Object.values(bestMups)[0]?.count, 
             prompt: Object.values(bestMups)[0]?.prompt, 
             attributes: attributes,
-            limit: 9,
+            limit: 1,
           }),
         }
       );
@@ -86,6 +87,7 @@ const RepairDatasetDetails = () => {
         const data = await response.json();
         console.log(data.generated_images);
         setGeneratedImages(data.generated_images);
+        setPulledArms(data.pulled_arms);
         setMups({});
         setLastGeneratedMup(Object.keys(bestMups)[0]);
         setBestMups({});
@@ -112,11 +114,14 @@ const RepairDatasetDetails = () => {
     setIsSubmitting(true);
 
     try {
-      // Subtract selected images from generated images
-      const acceptableImages = generatedImages.filter(
-        (image) => !selectedImages.includes(image)
-      );
-
+      let images = generatedImages.map((imageName, index) => {
+        return {
+            'name': imageName,
+            'accepted': !selectedImages.includes(imageName),
+            'arm': pulledArms[index]
+        };
+      });
+      console.log(images)
       // Post acceptable images list to the backend
       const response = await fetch(
         `${BASE_BACKEND_URL}/v1/datasets/${id}/images/`,
@@ -126,7 +131,7 @@ const RepairDatasetDetails = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            acceptable_images: acceptableImages,
+            images: images, 
             attributes: attributes,
             pattern: lastGeneratedMup,
           }),
@@ -138,6 +143,7 @@ const RepairDatasetDetails = () => {
         console.log('Acceptable images submitted successfully.');
         setHasSubmitted(true);
         setGeneratedImages([]);
+        setPulledArms([]);
       } else {
         console.error('Error submitting acceptable images:', response.statusText);
       }
@@ -160,6 +166,7 @@ const RepairDatasetDetails = () => {
       setMups(data.mups);
       setBestMups(data.best_mups);
       setGeneratedImages([]);
+      setPulledArms([]);
       setHasSubmitted(false); // Reset submission status
     } catch (error) {
       console.error('Error finding MUPs:', error);
@@ -194,6 +201,7 @@ const RepairDatasetDetails = () => {
             >
               <option value="similar">Similar Images</option>
               <option value="random">Random</option>
+              <option value="ucb">UCB</option>
               <option value="none">No Base Image</option>
             </select>
             <button onClick={handleRepair} className="repair-button">

@@ -2,8 +2,8 @@
   "datasets": [
     {
       "name": "ds_name",
-      "resource_path": "/home/mahdi/PycharmProjects/FairnessLens/resources",
-      "csv_path": "/home/mahdi/PycharmProjects/FairnessLens/ImageAnalyzer/main.csv",
+      "resource_path": "/home/mahdi/Projects/FairnessLens/resources",
+      "csv_path": "/home/mahdi/Projects/FairnessLens/ImageAnalyzer/main.csv",
       "attributes": [
         {
           "name": "age_group",

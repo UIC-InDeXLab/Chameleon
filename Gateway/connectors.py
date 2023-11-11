@@ -114,3 +114,16 @@ class MaskGeneratorConnector(Connector):
             'accuracy_level': accuracy_level,
         }
         return self.post_files("/v1/images/masks", files=files, params=params)
+
+
+class UCBConnector(Connector):
+    def __init__(self):
+        super().__init__(os.getenv("UCB_BASE_URL"))
+
+    def get_arm(self, input_combination: int):
+        params = {"input_combination": input_combination}
+        return self.get_json_data("/v1/ucb/arms/", params=params)
+
+    def update_arm(self, arm: str, combination: int, reward: int):
+        params = {"arm": arm, "combination": combination, "reward": reward}
+        return self.post_form_data("/v1/ucb/arms/", params=params)

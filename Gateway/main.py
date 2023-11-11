@@ -72,8 +72,13 @@ async def generate_images(dataset_id: str, request: Request):
                 final_image = services.get_image_from_url(new_image_url)
                 store_outputs(mup, final_image)
             else:
-                base_image_details = services.get_mup_similar_image(dataset_id, mup) if strategy == "similar" \
-                    else services.get_random_image(dataset_id)
+                if strategy == "similar":
+                    base_image_details = services.get_mup_similar_image(dataset_id, mup)
+                elif strategy == "ucb":
+                    base_image_details = services.get_mup_ucb(dataset_id, mup)
+                else:
+                    base_image_details = services.get_random_image(dataset_id)
+
                 base_image = load_image(base_image_details["filename"], base_image_details["is_generated"])
                 mask = services.get_mask(base_image, accuracy)
                 generated_image_json = services.edit_image(base_image, mask, mup.prompt)
@@ -87,7 +92,7 @@ async def generate_images(dataset_id: str, request: Request):
             print(e)
             continue
 
-    return {"generated_images": mup.generated_images}
+    return {"generated_images": mup.generated_images, "pulled_arms": mup.pulled_arms}
 
 
 @app.get("/v1/datasets/{dataset_id}/mups/")
@@ -99,11 +104,13 @@ async def get_mups(dataset_id: str, threshold: int):
 @app.post("/v1/datasets/{dataset_id}/images/")
 async def submit_acceptable_images(dataset_id: str, request: Request):
     data = await request.json()
-    acceptable_images = data["acceptable_images"]
+    images: dict = data["images"]
     attributes = data["attributes"]
     pattern = data["pattern"]
-    for image in acceptable_images:
-        services.add_image_to_dataset(dataset_id, image, pattern, attributes=[Attribute(**a) for a in attributes])
+    for image in images:
+        if image["accepted"]:
+            services.add_image_to_dataset(dataset_id, image["name"], pattern, attributes=[Attribute(**a) for a in attributes])
+        services.update_ucb(image["arm"], pattern, 1 if image["accepted"] else 0)
     return {"success": True}
 
 

@@ -4,7 +4,7 @@ from typing import List
 import requests
 
 import connectors
-from connectors import ImageAnalyzerConnector, MaskGeneratorConnector, ImageEditorConnector
+from connectors import ImageAnalyzerConnector, MaskGeneratorConnector, ImageEditorConnector, UCBConnector
 from models import MaximalUncoveredPattern, Pattern, Attribute
 
 
@@ -28,17 +28,40 @@ def get_mup_similar_image(dataset_id: str, mup: MaximalUncoveredPattern):
     return res
 
 
+def get_mup_ucb(dataset_id: str, mup: MaximalUncoveredPattern):
+    ucb_connector = UCBConnector()
+    arm = ucb_connector.get_arm(int(mup.pattern, 2))["arm"]
+    similar_patterns = get_similar_patterns(dataset_id, mup, arm)
+    choice: Pattern = random.choices(similar_patterns, weights=[sp.frequency for sp in similar_patterns])[0]
+    mup.chosen_similar_pattern = choice
+    mup.pulled_arms.append(arm)
+    ia_connector = ImageAnalyzerConnector()
+    res = ia_connector.get_random_image_from_dataset(dataset_id=dataset_id,
+                                                     filters=mup.convert_pattern_to_filters(choice.pattern))
+
+    return res
+
+
+def update_ucb(arm: str, combination: str, reward: int):
+    connector = UCBConnector()
+    return connector.update_arm(arm, int(combination, 2), reward)
+
+
 def get_random_image(dataset_id: str):
     connector = ImageAnalyzerConnector()
     return connector.get_random_image_from_dataset(dataset_id=dataset_id)
 
 
-def get_similar_patterns(dataset_id: str, mup: MaximalUncoveredPattern) -> list[Pattern]:
+def get_similar_patterns(dataset_id: str, mup: MaximalUncoveredPattern, attr_index: int | None = None) -> list[Pattern]:
     similar_patterns: list[Pattern] = []
     connector = ImageAnalyzerConnector()
+
     for p in mup.similar_patterns_strings:
         res = connector.get_images_details(dataset_id, mup.convert_pattern_to_filters(p))
         similar_patterns.append(Pattern(p, res["count"], res["prompt"], mup.attributes))
+
+    if attr_index is not None:
+        return [p for p in similar_patterns if p.pattern[attr_index] != mup.pattern[attr_index]]
 
     return similar_patterns
 
@@ -77,7 +100,7 @@ def get_mups_details(dataset_id: str, threshold: int):
     return connector.get_mups(dataset_id, threshold)
 
 
-def add_image_to_dataset(dataset_id: str, file_name: str, pattern:str, attributes: List[Attribute] = None):
+def add_image_to_dataset(dataset_id: str, file_name: str, pattern: str, attributes: List[Attribute] = None):
     connector = connectors.ImageAnalyzerConnector()
     p = Pattern(pattern, 0, "", attributes)
     return connector.create_image(dataset_id, file_name, p.convert_pattern_to_filters(pattern))
