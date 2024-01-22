@@ -2,3 +2,9 @@ notebook
 jupyter
 Pillow
 tqdm
+pandas
+numpy
+seaborn
+opencv-python
+scikit-learn
+tensorflow
