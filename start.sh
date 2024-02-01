@@ -16,7 +16,7 @@ for project_dir in "${project_directories[@]}"; do
     
     cd "$project_dir"
     
-    uvicorn main:app --host 0.0.0.0 --port $port &
+    uvicorn main:app --host 0.0.0.0 --reload --port $port &
     
     port=$((port + 1))
     

@@ -10,9 +10,6 @@ def assert_env_var_not_none(env_var_name):
     return env_var_value
 
 
-def get_image_full_path(filename):
-    return os.path.join(assert_env_var_not_none("RESOURCES_PATH"), filename)
-
 
 def convert_list_to_dict(l: list) -> dict:
     q = {}

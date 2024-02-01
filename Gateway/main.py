@@ -60,11 +60,12 @@ async def generate_images(dataset_id: str, request: Request):
     frequency = data["frequency"]
     prompt = data["prompt"]
     attributes = data["attributes"]
+    need_to_be_generated = threshold - frequency
 
     mup = MaximalUncoveredPattern(pattern=pattern, frequency=frequency, prompt=prompt,
                                   attributes=[Attribute(**a) for a in attributes])
     num_generated = 0
-    while not mup.is_satisfied(threshold) and num_generated < limit:
+    while num_generated < need_to_be_generated and num_generated < limit:
         try:
             if strategy == "none":
                 generated_image_json = services.generate_image(mup.prompt)
@@ -101,6 +102,15 @@ async def get_mups(dataset_id: str, threshold: int):
     return mup_details
 
 
+@app.post("/v1/datasets/{dataset_id}/mups/{pattern}/status/")
+async def get_pattern_details(dataset_id: str, pattern: str, threshold: int, request: Request):
+    data = await request.json()
+    attributes = data["attributes"]
+    mup_status = services.get_pattern_details(dataset_id, pattern, attributes=[Attribute(**a) for a in attributes])
+    mup_status["is_satisfied"] = True if threshold <= mup_status["count"] else False
+    return mup_status
+
+
 @app.post("/v1/datasets/{dataset_id}/images/")
 async def submit_acceptable_images(dataset_id: str, request: Request):
     data = await request.json()
@@ -109,7 +119,8 @@ async def submit_acceptable_images(dataset_id: str, request: Request):
     pattern = data["pattern"]
     for image in images:
         if image["accepted"]:
-            services.add_image_to_dataset(dataset_id, image["name"], pattern, attributes=[Attribute(**a) for a in attributes])
+            services.add_image_to_dataset(dataset_id, image["name"], pattern,
+                                          attributes=[Attribute(**a) for a in attributes])
         services.update_ucb(image["arm"], pattern, 1 if image["accepted"] else 0)
     return {"success": True}
 

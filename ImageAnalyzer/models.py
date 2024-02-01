@@ -14,11 +14,13 @@ class Attribute:
 
 
 class Dataset:
-    def __init__(self, name, resource_path, csv_path, attributes):
+    def __init__(self, name, resource_path, csv_path, attributes, prompt_prefix, prompt_suffix):
         self.name = name
         self.__resource_path__ = resource_path
         self.__csv_path__ = csv_path
         self.attributes = [Attribute(**a) for a in attributes]
+        self.prompt_prefix = prompt_prefix
+        self.prompt_suffix = prompt_suffix
 
     def get_attribute_by_name(self, name):
         for a in self.attributes:
@@ -39,7 +41,7 @@ class Dataset:
             atts.append((a.position, a.mapping.get(str(v))))
 
         atts = sorted(atts, key=lambda x: x[0])
-        return " ".join([a[1] for a in atts])
+        return self.prompt_prefix + " " + " ".join([a[1] for a in atts]) + " " + self.prompt_suffix
 
     @property
     def num_attributes(self):
