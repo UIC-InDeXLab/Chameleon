@@ -30,7 +30,8 @@ def get_mup_similar_image(dataset_id: str, mup: MaximalUncoveredPattern):
 
 def get_mup_ucb(dataset_id: str, mup: MaximalUncoveredPattern):
     ucb_connector = UCBConnector()
-    arm = ucb_connector.get_arm(int(mup.pattern, 2))["arm"]
+    # TODO: don't ignore combination here
+    arm = ucb_connector.get_arm(0)["arm"]
     similar_patterns = get_similar_patterns(dataset_id, mup, arm)
     choice: Pattern = random.choices(similar_patterns, weights=[sp.frequency for sp in similar_patterns])[0]
     mup.chosen_similar_pattern = choice
@@ -44,7 +45,8 @@ def get_mup_ucb(dataset_id: str, mup: MaximalUncoveredPattern):
 
 def update_ucb(arm: str, combination: str, reward: int):
     connector = UCBConnector()
-    return connector.update_arm(arm, int(combination, 2), reward)
+    # TODO: don't ignore combination here
+    return connector.update_arm(arm, 0, reward)
 
 
 def get_random_image(dataset_id: str):
@@ -98,6 +100,12 @@ def create_partial_ds(data):
 def get_mups_details(dataset_id: str, threshold: int):
     connector = connectors.ImageAnalyzerConnector()
     return connector.get_mups(dataset_id, threshold)
+
+
+def get_pattern_details(dataset_id: str, pattern: str, attributes: List[Attribute] = None):
+    connector = connectors.ImageAnalyzerConnector()
+    p = Pattern(pattern, 0, "", attributes)
+    return connector.get_images_details(dataset_id, p.convert_pattern_to_filters(p.pattern))
 
 
 def add_image_to_dataset(dataset_id: str, file_name: str, pattern: str, attributes: List[Attribute] = None):

@@ -1,5 +1,5 @@
 {
-  "num_arms": 3,
-  "num_combinations": 64,
+  "num_arms": 2,
+  "num_combinations": 10,
   "alpha": 100
 }

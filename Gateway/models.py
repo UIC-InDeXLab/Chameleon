@@ -37,6 +37,8 @@ class Pattern:
     def convert_pattern_to_filters(self, pattern: str):
         filters = {}
         for i, c in enumerate(list(pattern)):
+            if str(c).lower() == "x":
+                continue
             filters[self.get_attribute_by_pattern_index(i).name] = int(c)
 
         return filters

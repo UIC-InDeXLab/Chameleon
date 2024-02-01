@@ -15,6 +15,7 @@ const SampleBatchPage = () => {
         setImages(data);
         setImages((prevImages) => prevImages.map((image) => ({ ...image, accepted: true })));
         setIsLoading(false);
+        console.log(data)
       } else {
         console.error('Error fetching sample batch:', response.statusText);
       }
@@ -60,6 +61,7 @@ const SampleBatchPage = () => {
       if (response.ok) {
         // Handle success
         console.log('Acceptable images submitted successfully.');
+        console.log(jsonData)
         getSampleBatch();
       } else {
         console.error('Error submitting acceptable images:', response.statusText);
@@ -72,7 +74,8 @@ const SampleBatchPage = () => {
   
   return (
     <div>
-      <h1>Sample Batch Page</h1>
+      <h2>Instructions: Please select images that look <b>unrealistic</b><br></br>
+     Upon selecting an image, a red border will be displayed around the chosen image <br></br> To deselect the image, click on it once again.</h2>
       <div className="button-container">
         <button onClick={handleSubmit} className="submit-button">
           Submit
@@ -89,7 +92,6 @@ const SampleBatchPage = () => {
               onClick={() => handleClick(index)}
             >
               <img src={`${BASE_BACKEND_URL}/v1/images/${image.filename}`} alt={`Image ${index}`} className="image" />
-              <p className="caption">{image.prompt}</p>
             </div>
           ))}
         </div>

@@ -4,6 +4,8 @@
       "name": "ds_name",
       "resource_path": "/home/mahdi/Projects/FairnessLens/resources",
       "csv_path": "/home/mahdi/Projects/FairnessLens/ImageAnalyzer/main.csv",
+      "prompt_prefix": "",
+      "prompt_suffix": "",
       "attributes": [
         {
           "name": "age_group",

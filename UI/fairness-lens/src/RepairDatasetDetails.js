@@ -9,6 +9,10 @@ const RepairDatasetDetails = () => {
   const [threshold, setThreshold] = useState('');
   const [maskAccuracy, setMaskAccuracy] = useState('accurate');
   const [baseImageStrategy, setBaseImageStrategy] = useState('similar');
+  const [pmup, setPmup] = useState('');
+  const [prompt, setPrompt] = useState(''); 
+  const [pmupCount, setPmupCount] = useState(0);
+  const [pattern, setPattern] = useState('');  
   const [bestMups, setBestMups] = useState({});
   const [mups, setMups] = useState({});
   const [lastGeneratedMup, setLastGeneratedMup] = useState('');
@@ -50,6 +54,10 @@ const RepairDatasetDetails = () => {
       setMups(data.mups);
       setBestMups(data.best_mups);
       setAttributes(data.attributes);
+      setPmup(Object.values(data.best_mups)[0]?.pmup);
+      setPrompt(Object.values(data.best_mups)[0]?.prompt);
+      setPmupCount(Object.values(data.best_mups)[0]?.count);
+      setPattern(Object.values(data.best_mups)[0]?.pattern);
     } catch (error) {
       console.error('Error finding MUPs:', error);
     } finally {
@@ -71,12 +79,12 @@ const RepairDatasetDetails = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            pattern: Object.keys(bestMups)[0],
+            pattern: pattern,
             threshold: threshold,
             accuracy: maskAccuracy,
             strategy: baseImageStrategy,
-            frequency: Object.values(bestMups)[0]?.count, 
-            prompt: Object.values(bestMups)[0]?.prompt, 
+            frequency: pmupCount, 
+            prompt: prompt, 
             attributes: attributes,
             limit: 1,
           }),
@@ -89,7 +97,7 @@ const RepairDatasetDetails = () => {
         setGeneratedImages(data.generated_images);
         setPulledArms(data.pulled_arms);
         setMups({});
-        setLastGeneratedMup(Object.keys(bestMups)[0]);
+        setLastGeneratedMup(pattern);
         setBestMups({});
       } else {
         console.error('Error generating images:', response.statusText);
@@ -158,16 +166,47 @@ const RepairDatasetDetails = () => {
     setIsLoading(true);
 
     try {
-      // Fetch MUPs response from the backend using the current threshold and dataset ID
-      const response = await fetch(
-        `${BASE_BACKEND_URL}/v1/datasets/${id}/mups/?threshold=${threshold}`
+      const res = await fetch(
+        `${BASE_BACKEND_URL}/v1/datasets/${id}/mups/${pmup}/status/?threshold=${threshold}`, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            attributes: attributes
+          }),
+        }
       );
-      const data = await response.json();
-      setMups(data.mups);
-      setBestMups(data.best_mups);
-      setGeneratedImages([]);
-      setPulledArms([]);
-      setHasSubmitted(false); // Reset submission status
+
+      const d = await res.json(); 
+
+      console.log(d.count);
+      console.log(d.is_satisfied)
+
+      // Fetch MUPs response from the backend using the current threshold and dataset ID
+      if (d.is_satisfied) { 
+        const response = await fetch(
+          `${BASE_BACKEND_URL}/v1/datasets/${id}/mups/?threshold=${threshold}`
+        );
+        const data = await response.json();
+        setMups(data.mups);
+        setBestMups(data.best_mups);
+        setAttributes(data.attributes);
+        setPmup(Object.values(data.best_mups)[0]?.pmup);
+        setPrompt(Object.values(data.best_mups)[0]?.prompt);
+        setPmupCount(Object.values(data.best_mups)[0]?.count);
+        setPattern(Object.values(data.best_mups)[0]?.pattern);
+        setGeneratedImages([]);
+        setPulledArms([]);
+        setHasSubmitted(false); // Reset submission status
+        }
+      else { 
+        setBestMups(lastGeneratedMup);
+        setGeneratedImages([]);
+        setPulledArms([]);
+        setHasSubmitted(false); // Reset submission status
+      }
     } catch (error) {
       console.error('Error finding MUPs:', error);
     } finally {
@@ -181,8 +220,8 @@ const RepairDatasetDetails = () => {
       {Object.keys(bestMups).length > 0 && (
         <div className="best-mup-box">
           <p>
-            The best MUP to repair is <b>{Object.values(bestMups)[0]?.prompt}</b> with a frequency of{' '}
-            <b>{Object.values(bestMups)[0]?.count}</b>.
+            The best MUP to repair is <b>{prompt}</b> with a frequency of{' '}
+            <b>{pmupCount}</b>.
           </p>
           <div className="options">
             <label>Mask Accuracy:</label>

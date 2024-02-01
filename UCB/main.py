@@ -5,7 +5,7 @@ from fastapi import FastAPI, Depends
 from ucb import UCB
 
 app = FastAPI()
-gucb = None
+gucb: UCB = None
 
 
 @app.on_event("shutdown")

@@ -1,5 +1,7 @@
+import datetime
 import json
 import uuid
+import random
 from typing import List
 
 import pandas as pd
@@ -46,6 +48,17 @@ def add_image_to_dataset(dataset_id: str, file_name: str, attributes: List[str] 
     return {"file_name": file_name}
 
 
+@app.post("/v1/images/datasets/{dataset_id}/random/")
+def add_random_images_to_dataset(dataset_id: str, gender: str, race: str, age_group: str, count: int = 1):
+    with open(f"datasets/{dataset_id}.csv", 'a') as f:
+        for i in range(count):
+            current_time = datetime.datetime.now()
+            filename = f"{age_group}_{gender}_{race}_{current_time.strftime('%Y%m%d%H%M%S%f')}_fake.png"
+            f.write(f"{filename},{age_group},{gender},{race},True\n")
+
+    return {"success": True}
+
+
 @app.get("/v1/datasets/{dataset_id}/images/{file_name}/details/")
 def get_image_details(dataset_id: str, file_name: str):
     db_image = csv_crud.get_image(ds_id=dataset_id, filename=file_name)
@@ -78,8 +91,30 @@ def generate_prompt(dataset_id: str, filters: List[str] = Query(None), include_g
     return {"count": count, "prompt": prompt}
 
 
+@app.get("/v1/combinations/datasets/{dataset_id}/status/")
+def get_all_combinations_status(dataset_id: str):
+    manager: DatasetManager = DatasetManager.instance()
+    dataset = manager.get_dataset()
+    res = {}
+    for age_group in range(0, 8):
+        for gender in range(0, 2):
+            for race in range(0, 4):
+                res[f"{age_group}{gender}{race}"] = csv_crud.get_images_count(dataset_id,
+                                                                              {"age_group": age_group, "gender": gender,
+                                                                               "race": race})
+    return res
+
+
 @app.get("/v1/datasets/{dataset_id}/mups/")
 def get_best_mup(dataset_id: str, threshold: int):
+    def does_hit(pat: str, comb: str) -> bool:
+        for i, c in enumerate(list(pat)):
+            if c == "x":
+                continue
+            if comb[i] != c:
+                return False
+        return True
+
     manager: DatasetManager = DatasetManager.instance()
     dataset = manager.get_dataset()
     mups_patterns: list[str] = csv_crud.get_mups(dataset_id, threshold, dataset.num_attributes,
@@ -89,18 +124,24 @@ def get_best_mup(dataset_id: str, threshold: int):
         v = mups_level_dict.setdefault(pattern.count("x"), [])
         v.append(pattern)
 
-    tree = MUPTree(dataset.num_attributes, dataset.cardinality_of_attributes,
-                   mups_level_dict.get(max(mups_level_dict.keys())))
-    results = tree.get_best_combinations()
-    best_mups_dict = {}
+    patterns_to_fix = mups_level_dict.get(max(mups_level_dict.keys()))
+    tree = MUPTree(dataset.num_attributes, dataset.cardinality_of_attributes, patterns_to_fix)
+
+    best_combination = random.choice(tree.get_best_combinations()).pattern
+    mups_candidates = {}
+    for p in patterns_to_fix:
+        c_filters = [f"{dataset.get_attribute_by_column_number(dataset.attributes_ids[i]).name}={c}" for i, c in
+                     enumerate(list(best_combination)) if c != 'x']
+        if does_hit(p, best_combination):
+            filters = [f"{dataset.get_attribute_by_column_number(dataset.attributes_ids[i]).name}={c}" for i, c in
+                       enumerate(list(p)) if c != 'x']
+            mups_candidates[p] = {"count": csv_crud.get_images_count(dataset_id, filters=convert_list_to_dict(filters)),
+                                  "prompt": dataset.get_prompt(filters=convert_list_to_dict(c_filters)),
+                                  "pmup": p,
+                                  "pattern": best_combination
+                                  }
+
     mups_result_dict = {}
-    for node in results:
-        filters = [f"{dataset.get_attribute_by_column_number(dataset.attributes_ids[i]).name}={c}" for i, c in
-                   enumerate(list(node.pattern))]
-        best_mups_dict[node.pattern] = {
-            "count": csv_crud.get_images_count(dataset_id, filters=convert_list_to_dict(filters)),
-            "prompt": dataset.get_prompt(filters=convert_list_to_dict(filters))
-        }
 
     for pattern in mups_patterns:
         filters = [f"{dataset.get_attribute_by_column_number(dataset.attributes_ids[i]).name}={c}" for i, c in
@@ -110,8 +151,11 @@ def get_best_mup(dataset_id: str, threshold: int):
             "prompt": dataset.get_prompt(filters=convert_list_to_dict(filters))
         }
 
-    res = {k: v for k, v in sorted(best_mups_dict.items(), key=lambda item: item[1]["count"])}
-    return {"best_mups": res, "mups": mups_result_dict, "attributes": dataset.attributes}
+    res = {k: v for k, v in sorted(mups_candidates.items(), key=lambda item: item[1]["count"], reverse=True)}
+    for k, v in res.items():
+        print(k, v["count"])
+    k = list(res.keys())[0]
+    return {"best_mups": {best_combination: res[k]}, "mups": mups_result_dict, "attributes": dataset.attributes}
 
 
 @app.post("/v1/images/export/partial/")
