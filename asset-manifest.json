@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.css": "/Chameleon/static/css/main.63ffa884.css",
+    "main.js": "/Chameleon/static/js/main.ff1da900.js",
+    "static/media/hero-light.jpg": "/Chameleon/static/media/hero-light.dd65c4a5b7abbc7dea5d.jpg",
+    "static/media/hero-dark.jpg": "/Chameleon/static/media/hero-dark.767b8b8a35607913fffa.jpg",
+    "service-worker.js": "/Chameleon/service-worker.js",
+    "static/media/logo.png": "/Chameleon/static/media/logo.eb07147b436d07f87ea1.png",
+    "static/media/GH.svg": "/Chameleon/static/media/GH.b9e9a9aa6f05e9dfe5dcb8991bda3e4d.svg",
+    "static/media/defaultNavLogo.svg": "/Chameleon/static/media/defaultNavLogo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "static/media/logo.svg": "/Chameleon/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "index.html": "/Chameleon/index.html",
+    "main.63ffa884.css.map": "/Chameleon/static/css/main.63ffa884.css.map",
+    "main.ff1da900.js.map": "/Chameleon/static/js/main.ff1da900.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.63ffa884.css",
+    "static/js/main.ff1da900.js"
+  ]
+}
