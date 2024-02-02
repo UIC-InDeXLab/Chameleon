@@ -1,7 +1,0 @@
-# backend
-fastapi
-uvicorn[standard]
-python-dotenv
-python-multipart
-tqdm
-requests

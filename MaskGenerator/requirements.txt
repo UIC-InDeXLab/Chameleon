@@ -1,8 +1,0 @@
-# backend
-fastapi
-uvicorn[standard]
-python-multipart
-
-# background removal
-rembg==2.0.50
-

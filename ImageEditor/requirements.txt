@@ -1,8 +1,0 @@
-# backend
-fastapi
-uvicorn[standard]
-python-dotenv
-python-multipart
-
-# image generation
-openai
