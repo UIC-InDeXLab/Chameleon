@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/Chameleon/static/css/main.63ffa884.css",
-    "main.js": "/Chameleon/static/js/main.ca200c57.js",
+    "main.js": "/Chameleon/static/js/main.310e3622.js",
     "static/media/hero-dark.jpg": "/Chameleon/static/media/hero-dark.767b8b8a35607913fffa.jpg",
     "static/media/before_samples.png": "/Chameleon/static/media/before_samples.3f885eb3925098d997ff.png",
     "static/media/after_samples.png": "/Chameleon/static/media/after_samples.b20f77f9ce0c02b5ad46.png",
@@ -14,12 +14,11 @@
     "static/media/GH.svg": "/Chameleon/static/media/GH.b9e9a9aa6f05e9dfe5dcb8991bda3e4d.svg",
     "static/media/logo.svg": "/Chameleon/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
     "index.html": "/Chameleon/index.html",
-    "static/media/arxiv.svg": "/Chameleon/static/media/arxiv.f58e10c83f0dca91309c80961ac0ee32.svg",
     "main.63ffa884.css.map": "/Chameleon/static/css/main.63ffa884.css.map",
-    "main.ca200c57.js.map": "/Chameleon/static/js/main.ca200c57.js.map"
+    "main.310e3622.js.map": "/Chameleon/static/js/main.310e3622.js.map"
   },
   "entrypoints": [
     "static/css/main.63ffa884.css",
-    "static/js/main.ca200c57.js"
+    "static/js/main.310e3622.js"
   ]
 }
