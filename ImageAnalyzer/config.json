@@ -2,8 +2,6 @@
   "datasets": [
     {
       "name": "utkface",
-      "resource_path": "/home/mahdi/Projects/FairnessLens/resources",
-      "csv_path": "/home/mahdi/Projects/FairnessLens/ImageAnalyzer/main.csv",
       "prompt_prefix": "",
       "prompt_suffix": "",
       "attributes": [
@@ -55,8 +53,6 @@
     },
     {
       "name": "feretdb",
-      "resource_path": "/home/mahdi/Projects/FairnessLens/FERET/colorferet/dvd1/colored",
-      "csv_path": "/home/mahdi/Projects/FairnessLens/ImageAnalyzer/merged_feret.csv",
       "prompt_prefix": "",
       "prompt_suffix": "portrait looking face looking into camera",
       "attributes": [

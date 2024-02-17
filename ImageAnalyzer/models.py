@@ -14,10 +14,8 @@ class Attribute:
 
 
 class Dataset:
-    def __init__(self, name, resource_path, csv_path, attributes, prompt_prefix, prompt_suffix):
+    def __init__(self, name, attributes, prompt_prefix, prompt_suffix):
         self.name = name
-        self.__resource_path__ = resource_path
-        self.__csv_path__ = csv_path
         self.attributes = [Attribute(**a) for a in attributes]
         self.prompt_prefix = prompt_prefix
         self.prompt_suffix = prompt_suffix
