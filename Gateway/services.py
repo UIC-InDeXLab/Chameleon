@@ -96,6 +96,9 @@ def create_partial_ds(data):
     connector = ImageAnalyzerConnector()
     return connector.create_partial_ds(data)
 
+def create_sample_ds(parent: str, name: str, num_rows: int):
+    connector = ImageAnalyzerConnector()
+    return connector.create_sample_ds(parent, name, num_rows)
 
 def get_mups_details(dataset_id: str, threshold: int):
     connector = connectors.ImageAnalyzerConnector()
@@ -114,6 +117,6 @@ def add_image_to_dataset(dataset_id: str, file_name: str, pattern: str, attribut
     return connector.create_image(dataset_id, file_name, p.convert_pattern_to_filters(pattern))
 
 
-def get_current_main_dataset():
+def get_available_datasets():
     connector = connectors.ImageAnalyzerConnector()
-    return connector.get_current_main_dataset()
+    return connector.get_available_datasets()

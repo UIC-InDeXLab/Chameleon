@@ -52,7 +52,7 @@ class ImageAnalyzerConnector(Connector):
         return self.get_json_data(f"/v1/datasets/{dataset_id}/images/prompt/", params=params)
 
     def get_dataset_details(self, dataset_id: str):
-        return self.get_json_data(f"/v1/datasets/{dataset_id}/images/count/")
+        return self.get_json_data(f"/v1/datasets/{dataset_id}/")
 
     def get_dataset_images(self, dataset_id: str, skip=0, limit=None, filters: dict = None, is_generated=None):
         params = {"skip": skip, "limit": limit,
@@ -62,6 +62,10 @@ class ImageAnalyzerConnector(Connector):
 
     def create_partial_ds(self, json):
         return self.post_json_data("/v1/images/export/partial/", json=json)
+
+    def create_sample_ds(self, parent: str, name: str, num_rows: int):
+        params = {"parent": parent, "name": name, "num_rows": num_rows}
+        return self.post_form_data(f"/v1/datasets/", params=params)
 
     def get_mups(self, dataset_id: str, threshold: int):
         params = {"threshold": threshold}
@@ -73,8 +77,8 @@ class ImageAnalyzerConnector(Connector):
         params = {"attributes": [f"{k}={v}" for k, v in attributes.items()]}
         return self.post_form_data(f"/v1/datasets/{filename}/", params=params)
 
-    def get_current_main_dataset(self):
-        return self.get_json_data(f"/v1/datasets/details/")
+    def get_available_datasets(self):
+        return self.get_json_data(f"/v1/datasets/")
 
 
 class ImageEditorConnector(Connector):

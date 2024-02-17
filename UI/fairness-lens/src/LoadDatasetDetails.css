@@ -1,81 +1,91 @@
-.gallery {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    margin: 10%;
-    margin-top: 5%;
-    margin-bottom: 5%;
-  }
-  
-  .image {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-  }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-  }
-  
-  .pagination button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 8px 16px;
-    cursor: pointer;
-    margin: 0 5px;
-  }
-  
-  .pagination span {
-    font-weight: bold;
-    margin: 0 10px;
-  }
-  
-  .filters {
-    display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .filters label {
-    font-weight: bold;
-    margin-right: 10px;
-  }
-  
-  .filters select {
-    padding: 8px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-right: 10px;
-  }
+/* LoadDatasetDetails.css */
 
-  .repair {
-    display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .repair-button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 8px 16px;
-    cursor: pointer;
-    margin: 0 5px;
-    transition: background-color 0.3s;
-  }
-  
-  .repair-button:hover {
-    background-color: #0056b3;
-  }
-  
-  
-  
-  
-  
+/* Overall styling for the component */
+div {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header style */
+h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Filter section styling */
+.filters {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Individual filter styling */
+.filters div {
+  flex-basis: calc(25% - 20px);
+}
+
+/* Label styling */
+label {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+/* Dropdown styling */
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Pagination section styling */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Gallery styling */
+.gallery {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+/* Image styling */
+.image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* Repair button styling */
+.repair {
+  margin-top: 20px;
+}
+
+.repair-button {
+  display: inline-block;
+  background-color: #4caf50;
+  color: #fff;
+  padding: 15px 30px;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.repair-button:hover {
+  background-color: #45a049;
+}

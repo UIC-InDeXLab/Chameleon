@@ -64,5 +64,11 @@ class DatasetManager:
     def add_dataset(self, ds: Dataset):
         self.datasets.append(ds)
 
-    def get_dataset(self) -> Dataset:
+    def get_first_dataset(self) -> Dataset:
         return self.datasets[0]
+
+    def get_dataset_by_name(self, name: str):
+        return [ds for ds in self.datasets if str(ds.name).lower() == name.lower()].pop()
+
+    def get_datasets(self) -> [Dataset]:
+        return self.datasets

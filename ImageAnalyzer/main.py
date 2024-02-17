@@ -1,7 +1,7 @@
 import datetime
 import json
-import uuid
 import random
+import uuid
 from typing import List
 
 import pandas as pd
@@ -28,10 +28,31 @@ def load_datasets():
 app = FastAPI(on_startup=[load_datasets])
 
 
-@app.get("/v1/datasets/details/")
-def get_current_main_dataset_details():
+@app.get("/v1/datasets/")
+def get_available_datasets():
     manager: DatasetManager = DatasetManager.instance()
-    return manager.get_dataset()
+    return manager.get_datasets()
+
+
+@app.get("/v1/datasets/{dataset_id}/")
+def get_dataset_details(dataset_id: str):
+    dataset_name = dataset_id.strip().split("_").pop(0)
+    manager: DatasetManager = DatasetManager.instance()
+    ds = manager.get_dataset_by_name(dataset_name)
+    count = csv_crud.get_images_count(ds_id=dataset_id)
+    result = {"attributes": ds.attributes, "id": dataset_id, "parent": dataset_name, "count": count}
+    return result
+
+
+@app.post("/v1/datasets/")
+def create_sample_dataset(parent: str, name: str, num_rows: int):
+    manager: DatasetManager = DatasetManager.instance()
+    df = csv_crud.get_partial_table_df(ds_id=parent, limit=num_rows)
+    id = str(uuid.uuid4())[:6]
+    filename = f"{parent}_{name}_{id}"
+    df.to_csv(f"./datasets/{filename}.csv", index=False)
+
+    return {"id": filename}
 
 
 @app.get("/v1/datasets/{dataset_id}/images/")
@@ -84,7 +105,7 @@ async def get_random_image_from_dataset(dataset_id: str, filters: List[str] = Qu
 @app.get("/v1/datasets/{dataset_id}/images/prompt/")
 def generate_prompt(dataset_id: str, filters: List[str] = Query(None), include_generated_images: bool = True):
     manager: DatasetManager = DatasetManager.instance()
-    prompt = manager.get_dataset().get_prompt(convert_list_to_dict(filters))
+    prompt = manager.get_first_dataset().get_prompt(convert_list_to_dict(filters))
     count = csv_crud.get_images_count(ds_id=dataset_id, filters=convert_list_to_dict(filters),
                                       is_generated=None if include_generated_images else False)
 
@@ -94,7 +115,7 @@ def generate_prompt(dataset_id: str, filters: List[str] = Query(None), include_g
 @app.get("/v1/combinations/datasets/{dataset_id}/status/")
 def get_all_combinations_status(dataset_id: str):
     manager: DatasetManager = DatasetManager.instance()
-    dataset = manager.get_dataset()
+    dataset = manager.get_first_dataset()
     res = {}
     for age_group in range(0, 8):
         for gender in range(0, 2):
@@ -116,7 +137,7 @@ def get_best_mup(dataset_id: str, threshold: int):
         return True
 
     manager: DatasetManager = DatasetManager.instance()
-    dataset = manager.get_dataset()
+    dataset = manager.get_first_dataset()
     mups_patterns: list[str] = csv_crud.get_mups(dataset_id, threshold, dataset.num_attributes,
                                                  dataset.cardinality_of_attributes, dataset.attributes_ids)
     mups_level_dict = {}

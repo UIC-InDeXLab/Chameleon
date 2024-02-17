@@ -8,31 +8,47 @@ const LoadDatasetDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [raceFilter, setRaceFilter] = useState('all');
-  const [genderFilter, setGenderFilter] = useState('all');
-  const [ageGroupFilter, setAgeGroupFilter] = useState('all');
+  const [filters, setFilters] = useState([]);
+  const [selectedFilters, setSelectedFilters] = useState({});
   const [isGeneratedFilter, setIsGeneratedFilter] = useState('all');
 
   useEffect(() => {
+    fetchFilters();
     fetchImages();
-  }, [currentPage, raceFilter, genderFilter, ageGroupFilter, isGeneratedFilter]);
+  }, [currentPage, selectedFilters, isGeneratedFilter]);
+
+
+  const fetchFilters = async () => {
+    try {
+      const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets/${id}/`);
+      const data = await response.json();
+      setFilters(data.attributes);
+    } catch (error) {
+      console.error('Error fetching filters:', error);
+    }
+  };
+
 
   const fetchImages = async () => {
     setIsLoading(true);
     try {
       const queryParams = new URLSearchParams();
       const filterParams = [];
-      if (raceFilter !== 'all') filterParams.push(`race=${raceFilter}`);
-      if (genderFilter !== 'all') filterParams.push(`gender=${genderFilter}`);
-      if (ageGroupFilter !== 'all') filterParams.push(`age_group=${ageGroupFilter}`);
+
+      filters.forEach((filter) => {
+        const selectedValue = selectedFilters[filter.name] || 'all';
+        filterParams.push(`${filter.name}=${selectedValue}`);
+      });
+
       if (isGeneratedFilter !== 'all') queryParams.append('is_generated', isGeneratedFilter);
       
       queryParams.append('skip', (currentPage - 1) * 25);
       queryParams.append('limit', 25);
+
       if (filterParams.length > 0) {
-        queryParams.append('filters', filterParams);
+        queryParams.append('filters', filterParams.join('&'));
       }
-      console.log(queryParams);
+
       const response = await fetch(`${BASE_BACKEND_URL}/v1/datasets/${id}/images/?${queryParams}`);
       const data = await response.json();
       setImages(data.images);
@@ -42,6 +58,14 @@ const LoadDatasetDetails = () => {
       setIsLoading(false);
     }
   };
+
+  const handleFilterChange = (filterName, selectedValue) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: selectedValue,
+    }));
+  };
+
 
   // Handle pagination
   const handleNextPage = () => {
@@ -58,38 +82,27 @@ const LoadDatasetDetails = () => {
     <div>
       <h2>Loaded Dataset Details</h2>
       <div className="filters">
-        <label>Race:</label>
-        <select value={raceFilter} onChange={(e) => setRaceFilter(e.target.value)}>
-          <option value="all">All</option>
-          <option value="0">White</option>
-          <option value="1">Black</option>
-          <option value="2">Asian</option>
-          <option value="3">Indian</option>
-        </select>
-        <label>Gender:</label>
-        <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)}>
-          <option value="all">All</option>
-          <option value="0">Male</option>
-          <option value="1">Female</option>
-        </select> 
-        <label>Age Group:</label>
-        <select value={ageGroupFilter} onChange={(e) => setAgeGroupFilter(e.target.value)}>
-          <option value="all">All</option>
-          <option value="0">Infant</option>
-          <option value="1">Preschooler</option>
-          <option value="2">School Age Child</option>
-          <option value="3">Adolescents</option>
-          <option value="4">Young Adult</option>
-          <option value="5">Adult</option>
-          <option value="6">Middle Aged Person</option>
-          <option value="7">Elderly</option>
-        </select>  
+        {filters.map((filter) => (
+          <div key={filter.name}>
+            <label>{filter.name.charAt(0).toUpperCase() + filter.name.slice(1)}:</label>
+            <select value={selectedFilters[filter.name] || 'all'} onChange={(e) => handleFilterChange(filter.name, e.target.value)}>
+              <option value="all">All</option>
+              {Object.entries(filter.mapping).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+        <div key="generated-images">
         <label>Generated Images:</label>
         <select value={isGeneratedFilter} onChange={(e) => setIsGeneratedFilter(e.target.value)}>
           <option value="all">All</option>
           <option value="true">Just Generated</option>
           <option value="false">Just Original</option>
-        </select>         
+        </select>
+        </div>
       </div>
       <div className="pagination">
         <button onClick={handlePreviousPage} disabled={currentPage === 1}>

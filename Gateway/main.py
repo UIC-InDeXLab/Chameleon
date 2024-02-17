@@ -128,29 +128,33 @@ async def submit_acceptable_images(dataset_id: str, request: Request):
 @app.get("/v1/datasets/{dataset_id}/images/")
 async def get_dataset_images(dataset_id: str, skip: int = 0, limit: int | None = None,
                              filters: str = None, is_generated: bool | None = None):
-    images = services.get_dataset_images(dataset_id, skip, limit, filters=convert_list_to_dict(
-        str(filters).split(",") if filters is not None else None),
+    filters_list = [f for f in filters.split("&") if not f.lower().endswith("=all")] if filters is not None else None
+    images = services.get_dataset_images(dataset_id, skip, limit,
+                                         filters=convert_list_to_dict(filters_list),
                                          is_generated=is_generated)
 
     return {"images": [img["filename"] for img in images]}
 
 
 @app.get("/v1/datasets/")
-def get_current_main_dataset():
-    result = services.get_current_main_dataset()
+def get_available_datasets():
+    result = services.get_available_datasets()
     return result
+
+
+@app.post("/v1/datasets/")
+async def create_dataset(request: Request):
+    data = await request.json()
+    parent = data["parent"]
+    name = data["name"]
+    number = data["number"]
+    return services.create_sample_ds(parent, name, number)
 
 
 @app.get("/v1/datasets/{dataset_id}/")
 def get_dataset_details(dataset_id: str):
     result = services.get_dataset_details(dataset_id)
     return result
-
-
-@app.post("/v1/datasets/")
-async def export_partial_dataset(request: Request):
-    data = await request.json()
-    return services.create_partial_ds(data)
 
 
 @app.get("/v1/image/{dataset_id}/{image_name}/")
@@ -161,7 +165,8 @@ async def get_image(dataset_id: str, image_name: str, is_generated: bool = None)
     if is_generated:
         image_path = os.path.join(os.getenv("GENERATION_PATH"), dataset_id, image_name)
     else:
-        image_path = os.path.join(os.getenv("RESOURCES_PATH"), image_name)
+        parent = dataset_id.strip().split("_").pop(0)
+        image_path = os.path.join(os.getenv("RESOURCES_PATH"), parent, image_name)
     if not os.path.exists(image_path):
         print(image_path)
         raise Exception()
