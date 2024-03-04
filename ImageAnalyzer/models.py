@@ -68,5 +68,9 @@ class DatasetManager:
     def get_dataset_by_name(self, name: str):
         return [ds for ds in self.datasets if str(ds.name).lower() == name.lower()].pop()
 
+    def get_parent_dataset(self, dataset_id: str):
+        parent_dataset_name = dataset_id.strip().split("_").pop(0)
+        return self.get_dataset_by_name(parent_dataset_name)
+
     def get_datasets(self) -> [Dataset]:
         return self.datasets

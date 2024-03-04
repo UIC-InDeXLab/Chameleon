@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+from time import sleep
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response
@@ -60,6 +61,7 @@ async def generate_images(dataset_id: str, request: Request):
     frequency = data["frequency"]
     prompt = data["prompt"]
     attributes = data["attributes"]
+    parent = dataset_id.strip().split("_").pop(0)
     need_to_be_generated = threshold - frequency
 
     mup = MaximalUncoveredPattern(pattern=pattern, frequency=frequency, prompt=prompt,
@@ -80,7 +82,7 @@ async def generate_images(dataset_id: str, request: Request):
                 else:
                     base_image_details = services.get_random_image(dataset_id)
 
-                base_image = load_image(base_image_details["filename"], base_image_details["is_generated"])
+                base_image = load_image(base_image_details["filename"], parent, base_image_details["is_generated"])
                 mask = services.get_mask(base_image, accuracy)
                 generated_image_json = services.edit_image(base_image, mask, mup.prompt)
                 new_image_url = json.loads(generated_image_json.decode("utf-8"))["data"][0]["url"]
@@ -91,6 +93,7 @@ async def generate_images(dataset_id: str, request: Request):
             num_generated += 1
         except Exception as e:
             print(e)
+            sleep(1)
             continue
 
     return {"generated_images": mup.generated_images, "pulled_arms": mup.pulled_arms}
@@ -121,7 +124,8 @@ async def submit_acceptable_images(dataset_id: str, request: Request):
         if image["accepted"]:
             services.add_image_to_dataset(dataset_id, image["name"], pattern,
                                           attributes=[Attribute(**a) for a in attributes])
-        services.update_ucb(image["arm"], pattern, 1 if image["accepted"] else 0)
+        if image.get("arm", None) is not None:
+            services.update_ucb(image["arm"], pattern, 1 if image["accepted"] else 0)
     return {"success": True}
 
 

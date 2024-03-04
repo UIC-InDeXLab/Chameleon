@@ -1,46 +1,46 @@
 /* HomePage.css */
 
 .home-page {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
 }
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .logo {
-  width: 50%; /* Adjust the size according to your logo */
-  height: 50%; /* Adjust the size according to your logo */
-  margin-right: 10px;
+    width: 50%; /* Adjust the size according to your logo */
+    height: 50%; /* Adjust the size according to your logo */
+    margin-right: 10px;
 }
 
 h1 {
-  font-size: 4em;
-  color: #333;
+    font-size: 4em;
+    color: #333;
 }
 
 .description {
-  font-size: 1em;
-  color: #666;
-  margin-bottom: 20px;
+    font-size: 1em;
+    color: #666;
+    margin-bottom: 20px;
 }
 
 .big-button {
-  display: inline-block;
-  background-color: #4caf50;
-  color: #fff;
-  padding: 15px 30px;
-  margin: 10px;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: background-color 0.3s ease;
+    display: inline-block;
+    background-color: #4caf50;
+    color: #fff;
+    padding: 15px 30px;
+    margin: 10px;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
 }
 
 .big-button:hover {
-  background-color: #45a049;
+    background-color: #45a049;
 }

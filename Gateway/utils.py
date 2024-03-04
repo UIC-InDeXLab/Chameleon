@@ -21,9 +21,12 @@ def store_mup(mup, filename, dir):
         f.write(json.dumps(mup, cls=MUPEncoder))
 
 
-def load_image(filename, is_generated: bool):
+def load_image(filename, parent_ds, is_generated: bool):
+    # TODO: Duplicate logic with get_image API,
+    #       needs to be merged with get_image API as a core functionality that provides image data
+
     path = os.getenv("RESOURCES_PATH") if not is_generated else os.getenv("GENERATION_PATH")
-    with open(os.path.join(path, filename), "rb") as f:
+    with open(os.path.join(path, parent_ds, filename), "rb") as f:
         data = f.read()
 
     return data

@@ -1,88 +1,284 @@
 /* RepairDatasetDetails.css */
 
-.best-mup-box {
-    border: 1px solid #ddd;
-    padding: 10px;
+/* Overall styling for the component */
+div {
+    /*max-width: 80%;*/
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-radius: 20px;
+}
+
+/* Header styling */
+h1 {
+    font-size: 24px;
+    color: #333;
     margin-bottom: 20px;
+}
+
+.title {
+    background-color: white;
+    display: flex; /* Make parent container a flexbox */
+    align-items: center; /* Align content vertically */
+    justify-content: center;
+    gap: 10px;
+    padding: 0px;
+}
+
+.title pre {
+    font-size: xx-large;
+    background-color: #f7f7f7;
+    border-radius: 7px;
+}
+
+/* Best MUP box styling */
+.best-mup-box {
+    background-color: #fff;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.best-mup-text {
+    align-content: center;
+    align-items: center;
+    /*border-top-right-radius: 0px;*/
+    /*border-top-left-radius: 0px;*/
     text-align: center;
-    background-color: #f5f5f5;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .repair-button {
-    padding: 8px 20px;
-    background-color: #007bff;
-    color: white;
+}
+
+/* Options styling within Best MUP box */
+.options {
+    display: flex;
+    gap: 20px;
+    align-content: center;
+    align-items: center;
+    background-color: #f7f7f7;
+    justify-content: center;
+    /*border-bottom-left-radius: 0px;*/
+    /*border-bottom-right-radius: 0px;*/
+}
+
+.options label {
+    /*white-space: nowrap;*/
+}
+
+.options p {
+    align-self: center;
+}
+
+/* Dropdown styling within Best MUP box */
+select {
+    width: 120px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.repair-div {
+    margin-top: 20px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;}
+
+.repair-form {
+    margin: 0px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Repair button styling within Best MUP box */
+.repair-button {
+    background-color: #4caf50;
+    color: #fff;
+    padding: 10px 20px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-  }
-  
-  .threshold-input {
-    /* Add your input styles here */
-  }
-  
-  .find-mups-button {
-    /* Add your button styles here */
-  }
+}
 
-  .options {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 10px;
-  }
-  
-  /* Style for the select drop-downs */
-  label {
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  select {
+.repair-button:hover {
+    background-color: #45a049;
+}
+
+/* Loading and generating messages styling */
+.center-content {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Threshold input styling */
+.threshold-input {
+    width: 80px;
     padding: 8px;
-    font-size: 14px;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 200px;
-    margin-bottom: 10px;
-  }
-  
-  .center-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
-  .mups-list {
-    text-align: center;
-  }
-  
-  .mups-box {
-    max-height: 300px;
-    overflow-y: auto;
-    list-style-type: none;
-    padding: 0;
-    border: 1px solid #ddd;
-    margin: 20px 0;
-  }
+    border-radius: 4px;
+    margin-right: 10px;
+}
 
-  
-.generated-images {
-    text-align: center;
+/* Find MUPs button styling */
+.find-mups-button {
+    background-color: #4caf50;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.find-mups-button:hover {
+    background-color: #45a049;
+}
+
+/* MUPs list styling */
+.mups-list {
     margin-top: 20px;
-  }
-  .images-grid {
+    background-color: white;
+}
+
+/* MUPs grid styling */
+.mup-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    background-color: #f7f7f7;
+    border-radius: 20px;
+}
+
+/* MUP card styling */
+.mup-card {
+    background-color: #fff;
+    border-radius: 10px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
     align-items: center;
+    height: 20px; /* Adjust height as needed */
+    width: 180px; /* Adjust width as needed */
+    padding-right: 0px;
+    padding-left: 0px;
+
+}
+
+/* MUP content styling */
+.mup-content {
+    flex: 1; /* Allow content to fill remaining space */
+    display: flex;
+    float: left;
+    align-items: center;
+    /*white-space: nowrap; !* Prevent wrapping and enable ellipsis *!*/
+    overflow: hidden; /* Hide overflowing text */
+    /*width: 80%;*/
+    background-color: white;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
+}
+
+/* MUP name styling */
+.mup-name {
+    font-size: 0.8rem;
+    /*font-weight: bold;*/
+    text-overflow: ellipsis;
+    text-align: left;
+}
+
+.level-row {
+    background-color: white;
+}
+
+/* MUP count wrapper styling */
+.mup-count-wrapper {
+    background-color: #ff6887;
+    float: right;
+    display: flex;
+    justify-content: right; /* Align count to the right */
+    align-items: center;
+    width: 5%; /* Fixed width for count */
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* MUP count styling */
+.mup-count {
+    color: #333;
+}
+
+/* Generated images styling */
+.generated-images {
     margin-top: 20px;
-  }
-  
-  .images-grid img {
-    max-width: 100%;
+}
+
+/* Images grid styling */
+.images-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    background-color: white;
+    border-radius: 8px;
+}
+
+/* Individual image styling */
+.generated-images img {
+    width: 100%;
     height: auto;
-    margin: 10px; /* Adjust this value for desired spacing between images */
-  }
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+/* Selected image styling */
+.generated-images img.selected {
+    border: 3px solid mediumvioletred;
+}
+
+.submit-button-div {
+    margin-top: 20px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.prompt-div {
+    background-color: white;
+    margin-top: 20px;
+}
+
+.reeavalute-div {
+    margin-top: 20px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Submit button styling */
+.submit-button,
+.reevaluate-button {
+    background-color: #4caf50;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-button:hover,
+.reevaluate-button:hover {
+    background-color: #45a049;
+}
