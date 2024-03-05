@@ -240,6 +240,14 @@ select {
     border: 3px solid mediumvioletred;
 }
 
+.grayed-out {
+    opacity: 0.8; /* Reduce opacity to make the image appear greyed out */
+    filter: grayscale(100%); /* Apply grayscale filter for a more pronounced effect (optional) */
+    cursor: default; /* Set cursor to default to indicate non-interactiveness (optional) */
+
+}
+
+
 .submit-button-div {
     margin-top: 20px;
     background-color: white;

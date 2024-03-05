@@ -54,6 +54,7 @@ const RepairDatasetDetails = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [generatedImages, setGeneratedImages] = useState([]);
     const [pulledArms, setPulledArms] = useState([]);
+    const [ddtResults, setDdtResults] = useState([]);
     const [selectedImages, setSelectedImages] = useState([]);
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
@@ -128,6 +129,7 @@ const RepairDatasetDetails = () => {
                 console.log(data.generated_images);
                 setGeneratedImages(data.generated_images);
                 setPulledArms(data.pulled_arms);
+                setDdtResults(data.ddt_results);
                 setMups({});
                 setLastGeneratedMup(pattern);
                 setBestMups({});
@@ -155,9 +157,10 @@ const RepairDatasetDetails = () => {
 
         try {
             let images = generatedImages.map((imageName, index) => {
+                const isAccepted = !selectedImages.includes(imageName) && ddtResults[index];
                 return {
                     'name': imageName,
-                    'accepted': !selectedImages.includes(imageName),
+                    'accepted': isAccepted,
                     'arm': pulledArms[index]
                 };
             });
@@ -184,6 +187,7 @@ const RepairDatasetDetails = () => {
                 setHasSubmitted(true);
                 setGeneratedImages([]);
                 setPulledArms([]);
+                setDdtResults([]);
                 setCountNeeded(countNeeded - generatedImages.length + selectedImages.length)
             } else {
                 console.error('Error submitting acceptable images:', response.statusText);
@@ -232,11 +236,13 @@ const RepairDatasetDetails = () => {
                 setPattern(Object.values(data.best_mups)[0]?.pattern);
                 setGeneratedImages([]);
                 setPulledArms([]);
+                setDdtResults([]);
                 setHasSubmitted(false); // Reset submission status
             } else {
                 setBestMups(lastGeneratedMup);
                 setGeneratedImages([]);
                 setPulledArms([]);
+                setDdtResults([]);
                 setHasSubmitted(false); // Reset submission status
             }
         } catch (error) {
@@ -347,8 +353,14 @@ const RepairDatasetDetails = () => {
                                 key={index}
                                 src={`${BASE_BACKEND_URL}/v1/image/${image}/?is_generated=1`}
                                 alt={`Generated Image ${index}`}
-                                onClick={() => handleImageClick(image)}
-                                className={selectedImages.includes(image) ? 'selected' : ''}
+                                onClick={() => (ddtResults[index] ? handleImageClick(image) : {})} // Conditionally handle click
+                                className={
+                                    ddtResults[index]
+                                        ? selectedImages.includes(image)
+                                            ? 'selected'
+                                            : ''
+                                        : 'grayed-out' // Add class for greyed-out images
+                                }
                             />
                         ))}
                     </div>
