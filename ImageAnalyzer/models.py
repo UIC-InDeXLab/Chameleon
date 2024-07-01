@@ -32,14 +32,17 @@ class Dataset:
                 return a
         return None
 
-    def get_prompt(self, filters: dict):
+    def get_prompt(self, filters: dict) -> str:
+        return " ".join([self.prompt_prefix, self.get_combination_str(filters), self.prompt_suffix])
+
+    def get_combination_str(self, filters: dict) -> str:
         atts = []
         for k, v in filters.items():
             a = self.get_attribute_by_name(k)
             atts.append((a.position, a.mapping.get(str(v))))
 
         atts = sorted(atts, key=lambda x: x[0])
-        return self.prompt_prefix + " " + " ".join([a[1] for a in atts]) + " " + self.prompt_suffix
+        return " ".join([a[1] for a in atts])
 
     @property
     def num_attributes(self):

@@ -157,6 +157,8 @@ def get_best_mup(dataset_id: str, threshold: int):
                        enumerate(list(p)) if c != 'x']
             mups_candidates[p] = {"count": csv_crud.get_images_count(dataset_id, filters=convert_list_to_dict(filters)),
                                   "prompt": parent_ds.get_prompt(filters=convert_list_to_dict(c_filters)),
+                                  "combination_str": parent_ds.get_combination_str(
+                                      filters=convert_list_to_dict(c_filters)),
                                   "pmup": p,
                                   "pattern": best_combination
                                   }
@@ -169,7 +171,8 @@ def get_best_mup(dataset_id: str, threshold: int):
         mups_result_dict[pattern] = {
             "count": csv_crud.get_images_count(dataset_id, filters=convert_list_to_dict(filters)),
             "prompt": parent_ds.get_prompt(filters=convert_list_to_dict(filters)),
-            "level": len(list(pattern)) - pattern.count("x")
+            "level": len(list(pattern)) - pattern.count("x"),
+            "combination_str": parent_ds.get_combination_str(filters=convert_list_to_dict(filters))
         }
 
     res = {k: v for k, v in sorted(mups_candidates.items(), key=lambda item: item[1]["count"], reverse=True)}

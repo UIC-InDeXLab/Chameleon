@@ -1,3 +1,4 @@
+import json
 import os
 
 import requests
@@ -55,6 +56,8 @@ class ImageAnalyzerConnector(Connector):
         return self.get_json_data(f"/v1/datasets/{dataset_id}/")
 
     def get_dataset_images(self, dataset_id: str, skip=0, limit=None, filters: dict = None, is_generated=None):
+        if filters is None:
+            filters = {}
         params = {"skip": skip, "limit": limit,
                   "filters": [f"{k}={v}" for k, v in filters.items() if filters is not None],
                   "is_generated": is_generated}
@@ -131,3 +134,20 @@ class UCBConnector(Connector):
     def update_arm(self, arm: str, combination: int, reward: int):
         params = {"arm": arm, "combination": combination, "reward": reward}
         return self.post_form_data("/v1/ucb/arms/", params=params)
+
+
+class DataDistributionTesterConnector(Connector):
+    def __init__(self):
+        super().__init__(os.getenv("DATA_DISTRIBUTION_TESTER_URL"))
+
+    def get_data_distribution_test_result(self, train_paths, image, nu: float = 0.4, kernel: str = "rbf"):
+        params = {
+            'nu': nu,
+            'kernel': kernel,
+        }
+
+        files = {
+            'image': image,
+            'training_paths': (None, ",".join(train_paths)),
+        }
+        return json.loads(self.post_files("/v1/predict/", params=params, files=files).decode("utf-8"))

@@ -17,10 +17,10 @@ const HomePage = () => {
             </p>
             <div className="button-container">
                 <Link to="/create-dataset" className="big-button">
-                    Create Your Dataset
+                    Create Your Sample
                 </Link>
                 <Link to="/load-dataset" className="big-button">
-                    Load Your Dataset
+                    Load & Repair Your Sample
                 </Link>
             </div>
         </div>

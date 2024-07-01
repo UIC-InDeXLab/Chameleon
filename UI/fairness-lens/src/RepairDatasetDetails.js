@@ -1,13 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
+import {BeatLoader} from 'react-spinners';
 import './RepairDatasetDetails.css';
 import {BASE_BACKEND_URL} from './api';
+
 
 const MupCard = ({mup, count}) => {
     return (
         <div className="mup-card">
             <div className="mup-content">
-                <p className="mup-name">{mup.prompt}</p>
+                <p className="mup-name">{mup.combination_str}</p>
             </div>
             <div className="mup-count-wrapper">
                 <p className="mup-count">{count}</p>
@@ -27,7 +29,7 @@ const renderMUPList = (mups) => {
                     <h3>Level {level + 1}</h3>
                     <div className="mup-cards">
                         {Object.values(mups).filter((mup) => mup.level === level + 1).map((mup) => (
-                            <MupCard key={mup.prompt} mup={mup} count={mup.count}/>
+                            <MupCard key={mup.combination_str} mup={mup} count={mup.count}/>
                         ))}
                     </div>
                 </div>
@@ -41,8 +43,11 @@ const RepairDatasetDetails = () => {
     const [threshold, setThreshold] = useState('');
     const [maskAccuracy, setMaskAccuracy] = useState('accurate');
     const [baseImageStrategy, setBaseImageStrategy] = useState('similar');
+    const [batchSize, setBatchSize] = useState(9);
+    const [useParentForEmbeddings, setUseParentForEmbeddings] = useState(false);
     const [pmup, setPmup] = useState('');
     const [prompt, setPrompt] = useState('');
+    const [combinationStr, setCombinationStr] = useState('')
     const [countNeeded, setCountNeeded] = useState(0);
     const [pattern, setPattern] = useState('');
     const [bestMups, setBestMups] = useState({});
@@ -89,6 +94,7 @@ const RepairDatasetDetails = () => {
             setAttributes(data.attributes);
             setPmup(Object.values(data.best_mups)[0]?.pmup);
             setPrompt(Object.values(data.best_mups)[0]?.prompt);
+            setCombinationStr(Object.values(data.best_mups)[0]?.combination_str);
             setCountNeeded(threshold - Object.values(data.best_mups)[0]?.count);
             setPattern(Object.values(data.best_mups)[0]?.pattern);
         } catch (error) {
@@ -119,7 +125,8 @@ const RepairDatasetDetails = () => {
                         frequency: threshold - countNeeded,
                         prompt: prompt,
                         attributes: attributes,
-                        limit: 9,
+                        use_parent_for_embeddings: useParentForEmbeddings,
+                        limit: batchSize,
                     }),
                 }
             );
@@ -185,10 +192,11 @@ const RepairDatasetDetails = () => {
                 // Handle success
                 console.log('Acceptable images submitted successfully.');
                 setHasSubmitted(true);
+                setCountNeeded(countNeeded - generatedImages.length + selectedImages.length)
                 setGeneratedImages([]);
                 setPulledArms([]);
                 setDdtResults([]);
-                setCountNeeded(countNeeded - generatedImages.length + selectedImages.length)
+                setSelectedImages([]);
             } else {
                 console.error('Error submitting acceptable images:', response.statusText);
             }
@@ -234,6 +242,7 @@ const RepairDatasetDetails = () => {
                 setPrompt(Object.values(data.best_mups)[0]?.prompt);
                 setCountNeeded(threshold - Object.values(data.best_mups)[0]?.count);
                 setPattern(Object.values(data.best_mups)[0]?.pattern);
+                setCombinationStr(Object.values(data.best_mups)[0]?.combination_str);
                 setGeneratedImages([]);
                 setPulledArms([]);
                 setDdtResults([]);
@@ -243,6 +252,7 @@ const RepairDatasetDetails = () => {
                 setGeneratedImages([]);
                 setPulledArms([]);
                 setDdtResults([]);
+                setCountNeeded(threshold - d.count)
                 setHasSubmitted(false); // Reset submission status
             }
         } catch (error) {
@@ -281,6 +291,25 @@ const RepairDatasetDetails = () => {
                             <option value="random">Random</option>
                             <option value="none">No Base Image</option>
                         </select>
+                        <label> Use Parent Dataset For Embeddings: </label>
+                        <input
+                            type="checkbox"
+                            checked={useParentForEmbeddings}
+                            className="embeddings-checkbox"
+                            onChange={(e) => setUseParentForEmbeddings(e.target.checked)}
+                        />
+                        <label>Batch Size:</label>
+                        <select
+                            value={batchSize}
+                            onChange={(e) => setBatchSize(Number(e.target.value))}
+                        >
+                            <option value="1">1</option>
+                            <option value="5">5</option>
+                            <option value="9" selected>
+                                9 (default)
+                            </option>
+                            <option value="16">16</option>
+                        </select>
                         <button onClick={handleRepair} className="repair-button">
                             Repair
                         </button>
@@ -288,7 +317,7 @@ const RepairDatasetDetails = () => {
                     <br></br>
                     <div className="best-mup-text">
                         <p>
-                            The best combination to generate image for is <b>{prompt}</b><br></br>
+                            The best combination to generate image for is <b>{combinationStr}</b><br></br>
                             Total number of images required to satisfy one lowest level MUP
                             is <b>{countNeeded}</b>.
                         </p>
@@ -297,14 +326,14 @@ const RepairDatasetDetails = () => {
             )}
             {isLoading ? (
                 <div className="center-content">
+                    <BeatLoader size={15} color={'#36D7B7'} loading={isLoading}/>
                     <p>Loading...</p>
                 </div>
             ) : isGenerating ? (
                 <div className="center-content">
-                    <p>
-                        Generating..., It usually takes about 5 minutes to generate a full
-                        batch, don't refresh the page
-                    </p>
+                    <BeatLoader size={15} color={'#36D7B7'} loading={isGenerating}/>
+                    <p>Generating..., It usually takes about 5 minutes to generate a full batch, don't refresh the
+                        page</p>
                 </div>
             ) : (
                 Object.keys(mups).length === 0 ? (

@@ -1,0 +1,12 @@
+# backend
+fastapi
+uvicorn[standard]
+python-dotenv
+python-multipart
+requests
+pandas
+tqdm
+
+# text generation
+openai
+google-generativeai

@@ -4,7 +4,8 @@ from typing import List
 import requests
 
 import connectors
-from connectors import ImageAnalyzerConnector, MaskGeneratorConnector, ImageEditorConnector, UCBConnector
+from connectors import ImageAnalyzerConnector, MaskGeneratorConnector, ImageEditorConnector, UCBConnector, \
+    DataDistributionTesterConnector
 from models import MaximalUncoveredPattern, Pattern, Attribute
 
 
@@ -73,7 +74,7 @@ def get_mask(base_image, accuracy_level: str):
     return connector.get_mask(base_image, accuracy_level)
 
 
-def edit_image(base_image, mask, prompt, size="256x256", n=1):
+def edit_image(base_image, mask, prompt, size="512x512", n=1):
     connector = ImageEditorConnector()
     return connector.edit_image(base_image, mask, prompt, size, n)
 
@@ -81,6 +82,13 @@ def edit_image(base_image, mask, prompt, size="256x256", n=1):
 def generate_image(prompt, size="256x256", n=1):
     connector = ImageEditorConnector()
     return connector.generate_image(prompt, size=size, n=n)
+
+
+def get_data_distribution_test_result(image: bytes, train_paths: set[str], nu: float = 0.5,
+                                      kernel: str = "linear"):
+    connector = DataDistributionTesterConnector()
+    res = connector.get_data_distribution_test_result(train_paths=train_paths, image=image, nu=nu, kernel=kernel)
+    return res
 
 
 def get_image_from_url(url):
@@ -96,9 +104,11 @@ def create_partial_ds(data):
     connector = ImageAnalyzerConnector()
     return connector.create_partial_ds(data)
 
+
 def create_sample_ds(parent: str, name: str, num_rows: int):
     connector = ImageAnalyzerConnector()
     return connector.create_sample_ds(parent, name, num_rows)
+
 
 def get_mups_details(dataset_id: str, threshold: int):
     connector = connectors.ImageAnalyzerConnector()

@@ -60,6 +60,7 @@ h1 {
 
 .options label {
     /*white-space: nowrap;*/
+    font-size: 14px;
 }
 
 .options p {
@@ -120,6 +121,9 @@ select {
     margin-right: 10px;
 }
 
+.embeddings-checkbox {
+    width: min-content;
+}
 /* Find MUPs button styling */
 .find-mups-button {
     background-color: #4caf50;

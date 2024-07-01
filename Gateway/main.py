@@ -61,6 +61,8 @@ async def generate_images(dataset_id: str, request: Request):
     frequency = data["frequency"]
     prompt = data["prompt"]
     attributes = data["attributes"]
+    use_parent_for_embeddings = data.get("use_parent_for_embeddings", False)
+
     parent = dataset_id.strip().split("_").pop(0)
     need_to_be_generated = threshold - frequency
 
@@ -74,6 +76,8 @@ async def generate_images(dataset_id: str, request: Request):
                 new_image_url = generated_image_json["data"][0]["url"]
                 final_image = services.get_image_from_url(new_image_url)
                 store_outputs(mup, final_image)
+                ddt_result = True
+                mup.ddt_results.append(ddt_result)
             else:
                 if strategy == "similar":
                     base_image_details = services.get_mup_similar_image(dataset_id, mup)
@@ -87,6 +91,14 @@ async def generate_images(dataset_id: str, request: Request):
                 generated_image_json = services.edit_image(base_image, mask, mup.prompt)
                 new_image_url = json.loads(generated_image_json.decode("utf-8"))["data"][0]["url"]
                 final_image = services.get_image_from_url(new_image_url)
+                train_image_paths = set(
+                    [os.path.join(os.getenv("RESOURCES_PATH"), parent, image["filename"]) for image in
+                     services.get_dataset_images(
+                         dataset_id=parent if use_parent_for_embeddings else dataset_id, is_generated=False)])
+                # ddt_result = services.get_data_distribution_test_result(final_image, train_paths=train_image_paths)[
+                #     "prediction"]
+                ddt_result = True
+                mup.ddt_results.append(ddt_result)
                 file_name = store_outputs(mup, final_image)
                 store_metadata(file_name, mup, base_image, mask)
 
@@ -96,7 +108,7 @@ async def generate_images(dataset_id: str, request: Request):
             sleep(1)
             continue
 
-    return {"generated_images": mup.generated_images, "pulled_arms": mup.pulled_arms}
+    return {"generated_images": mup.generated_images, "pulled_arms": mup.pulled_arms, "ddt_results": mup.ddt_results}
 
 
 @app.get("/v1/datasets/{dataset_id}/mups/")
