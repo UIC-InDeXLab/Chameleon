@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # List of project directories
-project_directories=("Gateway" "ImageAnalyzer" "MaskGenerator" "ImageEditor" "UCB")
+project_directories=("Gateway" "ImageAnalyzer" "MaskGenerator" "ImageEditor" "UCB" "DataDistributionTester")
 
 # Initialize the starting port number
 port=8000

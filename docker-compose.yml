@@ -1,0 +1,41 @@
+version: '3'
+services:
+  gateway:
+    build:
+      context: ./Gateway
+    ports:
+      - "8000:80"
+    env_file:
+      - ./Gateway/.env
+
+  image_analyzer:
+    build:
+      context: ./ImageAnalyzer
+    ports:
+      - "8001:80"
+    env_file:
+      - ./ImageAnalyzer/.env
+
+  mask_generator:
+    build:
+      context: ./MaskGenerator
+    ports:
+      - "8002:80"
+
+  image_editor:
+    build:
+      context: ./ImageEditor
+    ports:
+      - "8003:80"
+
+  ucb:
+    build:
+      context: ./UCB
+    ports:
+      - "8004:80"
+
+  data_distribution_tester:
+    build:
+      context: ./DataDistributionTester
+    ports:
+      - "8005:80"
