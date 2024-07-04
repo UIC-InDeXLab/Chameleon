@@ -7,6 +7,8 @@ services:
       - "8000:80"
     env_file:
       - ./Gateway/.env
+    volumes:
+      - /home/mahdi/Projects/FairnessLens/resources:/resources
 
   image_analyzer:
     build:
@@ -15,6 +17,11 @@ services:
       - "8001:80"
     env_file:
       - ./ImageAnalyzer/.env
+    environment:
+      - DATASET_PATH=/home/mahdi/Projects/FairnessLens/ImageAnalyzer/datasets/
+    volumes:
+      - /home/mahdi/Projects/FairnessLens/ImageAnalyzer/datasets/:/datasets/
+      - /var/run/docker.sock:/var/run/docker.sock  # Bind mount the Docker socket
 
   mask_generator:
     build:
@@ -39,3 +46,9 @@ services:
       context: ./DataDistributionTester
     ports:
       - "8005:80"
+
+  ui:
+    build:
+      context: ./UI/fairness-lens/
+    ports:
+      - "3000:80"

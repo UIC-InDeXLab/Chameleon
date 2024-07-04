@@ -50,67 +50,6 @@
           }
         }
       ]
-    },
-    {
-      "name": "feretdb",
-      "prompt_prefix": "natural looking headshot of a",
-      "prompt_suffix": "looking into camera",
-      "attributes": [
-        {
-          "name": "gender",
-          "pattern_index": 0,
-          "cardinality": 2,
-          "position": 1,
-          "column_number": 1,
-          "ordered": false,
-          "mapping": {
-            "0": "male",
-            "1": "female"
-          }
-        },
-        {
-          "name": "race",
-          "pattern_index": 1,
-          "cardinality": 5,
-          "column_number": 2,
-          "ordered": false,
-          "position": 0,
-          "mapping": {
-            "0": "white",
-            "1": "black",
-            "2": "asian",
-            "3": "hispanic",
-            "4": "middle eastern"
-          }
-        }
-      ]
-    },
-    {
-      "name": "animals",
-      "prompt_prefix": "an image of a ",
-      "prompt_suffix": "in wild",
-      "attributes": [
-        {
-          "name": "animal",
-          "pattern_index": 0,
-          "cardinality": 10,
-          "position": 0,
-          "column_number": 1,
-          "ordered": false,
-          "mapping": {
-            "0": "butterfly",
-            "1": "cat",
-            "2": "chicken",
-            "3": "cow",
-            "4": "dog",
-            "5": "elephant",
-            "6": "horse",
-            "7": "sheep",
-            "8": "spider",
-            "9": "squirrel"
-          }
-        }
-      ]
     }
   ]
 }

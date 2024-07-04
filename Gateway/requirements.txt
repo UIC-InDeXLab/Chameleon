@@ -1,5 +1,6 @@
 # backend
 fastapi
+fastapi-cors
 uvicorn[standard]
 python-dotenv
 python-multipart

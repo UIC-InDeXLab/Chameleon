@@ -1,4 +1,5 @@
 import os.path
+import shutil
 import subprocess
 
 import pandas as pd
@@ -8,7 +9,7 @@ import utils
 
 def get_images(ds_id: str, skip: int = 0, limit: int = None, filters=None, is_generated: bool | None = None,
                order_by=None, random_choose=False) -> pd.DataFrame:
-    df = pd.read_csv(os.path.join("./datasets", ds_id + ".csv"))
+    df = pd.read_csv(os.path.join("/datasets", ds_id + ".csv"))
     if filters is None:
         filters = {}
 
@@ -33,7 +34,7 @@ def get_images(ds_id: str, skip: int = 0, limit: int = None, filters=None, is_ge
 
 
 def get_image(ds_id, filename):
-    df = pd.read_csv(os.path.join("./datasets", ds_id + ".csv"))
+    df = pd.read_csv(os.path.join("/datasets", ds_id + ".csv"))
     df = df[df["filename"] == filename]
     return df.iloc[0]
 
@@ -51,11 +52,11 @@ def get_images_count(ds_id, filters=None, is_generated: bool | None = None):
 
 
 def add_image(ds_id, filename: str, attributes: dict, is_generated):
-    df = pd.read_csv(os.path.join("./datasets", ds_id + ".csv"))
+    df = pd.read_csv(os.path.join("/datasets", ds_id + ".csv"))
     attributes['filename'] = filename
     attributes['is_generated'] = is_generated
     df.loc[len(df)] = attributes
-    df.to_csv(os.path.join("./datasets", ds_id + ".csv"), index=False)
+    df.to_csv(os.path.join("/datasets", ds_id + ".csv"), index=False)
 
 
 def get_partial_table_df(ds_id, filters=None, limit: int = 1):
@@ -72,7 +73,7 @@ def get_mups(ds_id, threshold, dimension, cardinality_of_attributes, chosen_attr
         "ATTRIBUTES": "_".join([str(i) for i in chosen_attributes_ids]),
         "FILE": f"/datasets/{ds_id}.csv"
     }
-    cmd = f"""docker run --rm -v ./datasets/:/datasets/ -e {"-e ".join([f"{k}={v} " for k, v in envs.items()])} --ulimit nofile=122880:122880 {utils.assert_env_var_not_none('MUP_DOCKER_IMAGE')}"""
+    cmd = f"""docker run --rm -v {os.getenv("DATASET_PATH", "/datasets/")}:/datasets/ -e {"-e ".join([f"{k}={v} " for k, v in envs.items()])} --ulimit nofile=122880:122880 {utils.assert_env_var_not_none('MUP_DOCKER_IMAGE')}"""
     print(f"{cmd=}")
     output = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True, text=True).stdout
     start, end = False, False

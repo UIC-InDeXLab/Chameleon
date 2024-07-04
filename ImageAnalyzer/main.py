@@ -49,7 +49,7 @@ def create_sample_dataset(parent: str, name: str, num_rows: int):
     df = csv_crud.get_partial_table_df(ds_id=parent, limit=num_rows)
     id = str(uuid.uuid4())[:6]
     filename = f"{parent}_{name}_{id}"
-    df.to_csv(f"./datasets/{filename}.csv", index=False)
+    df.to_csv(f"/datasets/{filename}.csv", index=False)
 
     return {"id": filename}
 
@@ -200,6 +200,6 @@ async def export_partial_dataset(request: Request):
     merged_df = pd.concat(df_to_merge, axis=0, ignore_index=True)
 
     id = str(uuid.uuid4())
-    merged_df.to_csv(f"./datasets/{id}.csv", index=False)
+    merged_df.to_csv(f"/datasets/{id}.csv", index=False)
 
     return {"id": id}
