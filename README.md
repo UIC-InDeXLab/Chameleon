@@ -43,6 +43,11 @@ If you need to develop and test only one microservice independent from others, f
 
 Note that Python 3.8 and Python 3.10 are the most suitable versions for microservices. We tried to future-proof the project as much as possible, and each project should work fine with Python version >= 3.8.
 
+## ⚙️ Configuration
+
+Some microservices have some configurations in form of `.env` file that need to be configured in order to have a working project, since `.env` files are private files they all have been ignored in github but there is an `.env-example` file that has the default configuration, you can copy this file and rename it to `.env` for all projects except ImageEditor that needs your `OPENAI` credentials to contact DALL-E. 
+
+
 ## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
